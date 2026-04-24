@@ -4,12 +4,34 @@ import { useEffect, useState } from "react";
 
 import { useWorldStore } from "@/store/useWorldStore";
 
+function formatCoordinate(value: number, positive: string, negative: string): string {
+  const hemisphere = value >= 0 ? positive : negative;
+
+  return `${Math.abs(value).toFixed(4)} ${hemisphere}`;
+}
+
+function formatAltitude(meters: number): string {
+  if (meters >= 1_000_000) {
+    return `${(meters / 1_000_000).toFixed(2)} Mm`;
+  }
+
+  return `${Math.round(meters / 1_000)} km`;
+}
+
+function formatUtcTimestamp(date: Date): string {
+  return `${date.toISOString().replace("T", " ").slice(0, 19)} UTC`;
+}
+
 export function HudOverlay() {
-  const [utcTime, setUtcTime] = useState(() => new Date());
+  const [utcTime, setUtcTime] = useState("---- -- -- --:--:-- UTC");
   const hudEnabled = useWorldStore((state) => state.activeLayers.hud);
+  const globe = useWorldStore((state) => state.globe);
 
   useEffect(() => {
-    const interval = window.setInterval(() => setUtcTime(new Date()), 1000);
+    const updateUtcTime = () => setUtcTime(formatUtcTimestamp(new Date()));
+
+    updateUtcTime();
+    const interval = window.setInterval(updateUtcTime, 1000);
 
     return () => window.clearInterval(interval);
   }, []);
@@ -17,6 +39,14 @@ export function HudOverlay() {
   if (!hudEnabled) {
     return null;
   }
+
+  const coordinateText = globe.coordinates
+    ? `${formatCoordinate(globe.coordinates.latitude, "N", "S")} / ${formatCoordinate(
+        globe.coordinates.longitude,
+        "E",
+        "W",
+      )}`
+    : "Acquiring center";
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 text-slate-200">
@@ -33,17 +63,17 @@ export function HudOverlay() {
       </div>
       <div className="absolute bottom-16 left-1/2 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap justify-center gap-2">
         <div className="rounded-full bg-slate-950/42 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-slate-300 shadow-[0_0_30px_rgba(14,165,233,0.06)] ring-1 ring-white/[0.07] backdrop-blur-xl">
-          37.7749 N / 122.4194 W
+          {coordinateText}
         </div>
         <div className="rounded-full bg-slate-950/42 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-slate-300 shadow-[0_0_30px_rgba(14,165,233,0.06)] ring-1 ring-white/[0.07] backdrop-blur-xl">
-          Zoom 4.8
+          Zoom {globe.zoomLevel.toFixed(1)}
         </div>
         <div className="rounded-full bg-slate-950/42 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-slate-300 shadow-[0_0_30px_rgba(14,165,233,0.06)] ring-1 ring-white/[0.07] backdrop-blur-xl">
-          Alt 12,430 km
+          Alt {formatAltitude(globe.cameraHeightMeters)}
         </div>
       </div>
       <div className="absolute right-6 top-20 rounded-full bg-slate-950/42 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-slate-300 ring-1 ring-white/[0.07] backdrop-blur-xl">
-        {utcTime.toISOString().replace("T", " ").slice(0, 19)} UTC
+        {utcTime}
       </div>
     </div>
   );

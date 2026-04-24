@@ -10,6 +10,17 @@ const placeholderFields = [
   ["Source", "Awaiting selection"],
 ] as const;
 
+const aircraftFieldOrder = [
+  ["callsign", "Callsign"],
+  ["ICAO24", "ICAO24"],
+  ["country", "Country"],
+  ["altitude", "Altitude"],
+  ["velocity", "Velocity"],
+  ["heading", "Heading"],
+  ["lastContact", "Last Contact"],
+  ["source", "Source"],
+] as const;
+
 export function InspectorPanel() {
   const selectedEntity = useWorldStore((state) => state.selectedEntity);
   const panelOpen = useWorldStore((state) => state.panels.right);
@@ -47,20 +58,43 @@ export function InspectorPanel() {
       </div>
       <div className="px-4 pb-4 pt-1">
         {selectedEntity ? (
-          <dl className="space-y-3 text-sm">
-            <div>
-              <dt className="text-[0.68rem] uppercase tracking-[0.2em] text-slate-500">Name</dt>
-              <dd className="mt-1 text-slate-100">{selectedEntity.name}</dd>
+          <div className="rounded-xl bg-white/[0.035] p-3 ring-1 ring-white/[0.06]">
+            <div className="border-b border-white/[0.06] pb-3">
+              <p className="text-[0.66rem] uppercase tracking-[0.18em] text-slate-500">
+                {selectedEntity.kind}
+              </p>
+              <h3 className="mt-1 font-mono text-sm text-cyan-50">{selectedEntity.name}</h3>
             </div>
-            <div>
-              <dt className="text-[0.68rem] uppercase tracking-[0.2em] text-slate-500">Type</dt>
-              <dd className="mt-1 capitalize text-slate-100">{selectedEntity.kind}</dd>
-            </div>
-            <div>
-              <dt className="text-[0.68rem] uppercase tracking-[0.2em] text-slate-500">Identifier</dt>
-              <dd className="mt-1 font-mono text-cyan-100">{selectedEntity.id}</dd>
-            </div>
-          </dl>
+            <dl className="mt-3 space-y-2">
+              {selectedEntity.kind === "aircraft" && selectedEntity.metadata
+                ? aircraftFieldOrder.map(([key, label]) => (
+                    <div key={key} className="flex items-start justify-between gap-4">
+                      <dt className="text-[0.66rem] uppercase tracking-[0.14em] text-slate-500">
+                        {label}
+                      </dt>
+                      <dd className="max-w-40 text-right font-mono text-[0.68rem] tabular-nums text-slate-300">
+                        {String(selectedEntity.metadata?.[key] ?? "--")}
+                      </dd>
+                    </div>
+                  ))
+                : (
+                    <>
+                      <div className="flex items-center justify-between gap-4">
+                        <dt className="text-[0.66rem] uppercase tracking-[0.14em] text-slate-500">Type</dt>
+                        <dd className="font-mono text-[0.68rem] capitalize text-slate-300">
+                          {selectedEntity.kind}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <dt className="text-[0.66rem] uppercase tracking-[0.14em] text-slate-500">
+                          Identifier
+                        </dt>
+                        <dd className="font-mono text-[0.68rem] text-cyan-100">{selectedEntity.id}</dd>
+                      </div>
+                    </>
+                  )}
+            </dl>
+          </div>
         ) : (
           <div className="rounded-xl bg-white/[0.035] p-3 ring-1 ring-white/[0.06]">
             <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">

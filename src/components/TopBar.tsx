@@ -2,11 +2,18 @@
 
 import { useEffect, useState } from "react";
 
+function formatUtcClock(date: Date): string {
+  return date.toISOString().slice(11, 19);
+}
+
 export function TopBar() {
-  const [utcTime, setUtcTime] = useState(() => new Date());
+  const [utcTime, setUtcTime] = useState("--:--:--");
 
   useEffect(() => {
-    const interval = window.setInterval(() => setUtcTime(new Date()), 1000);
+    const updateUtcTime = () => setUtcTime(formatUtcClock(new Date()));
+
+    updateUtcTime();
+    const interval = window.setInterval(updateUtcTime, 1000);
 
     return () => window.clearInterval(interval);
   }, []);
@@ -34,7 +41,7 @@ export function TopBar() {
           />
         </div>
         <div className="ml-auto hidden items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-slate-400 lg:flex">
-          <span className="tabular-nums">UTC {utcTime.toISOString().slice(11, 19)}</span>
+          <span className="tabular-nums">UTC {utcTime}</span>
           <span>LINK 98%</span>
           <span>SYS NOM</span>
         </div>
