@@ -7,7 +7,7 @@ export function TopBar() {
             IR
           </div>
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold uppercase tracking-[0.34em] text-white">Iris</h1>
+            <h1 className="truncate text-sm font-semibold uppercase tracking-[0.34em] text-white">IRIS</h1>
             <p className="hidden text-[0.62rem] uppercase tracking-[0.24em] text-cyan-200/70 sm:block">
               Spatial Intelligence Console
             </p>

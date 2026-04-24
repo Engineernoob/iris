@@ -4,12 +4,15 @@ import { useEffect, useRef } from "react";
 import {
   Cartesian3,
   Credit,
+  ImageryLayer,
   Math as CesiumMath,
   UrlTemplateImageryProvider,
   Viewer,
   WebMercatorTilingScheme,
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
+
+import { useWorldStore } from "@/store/useWorldStore";
 
 const CESIUM_BASE_URL = "/cesium";
 
@@ -27,6 +30,8 @@ function createMapboxImageryProvider(token: string): UrlTemplateImageryProvider 
 export default function CesiumViewer() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
+  const mapboxImageryLayerRef = useRef<ImageryLayer | null>(null);
+  const mapboxSatellite = useWorldStore((state) => state.activeLayers.mapboxSatellite);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) {
@@ -56,7 +61,10 @@ export default function CesiumViewer() {
     viewer.cesiumWidget.creditContainer.remove();
 
     if (token) {
-      viewer.imageryLayers.addImageryProvider(createMapboxImageryProvider(token));
+      mapboxImageryLayerRef.current = viewer.imageryLayers.addImageryProvider(
+        createMapboxImageryProvider(token),
+      );
+      mapboxImageryLayerRef.current.show = mapboxSatellite;
     }
 
     viewer.camera.setView({
@@ -73,8 +81,21 @@ export default function CesiumViewer() {
         viewer.destroy();
       }
       viewerRef.current = null;
+      mapboxImageryLayerRef.current = null;
     };
+    // The viewer and imagery provider should be created exactly once.
+    // Layer visibility changes are handled by the effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!mapboxImageryLayerRef.current) {
+      return;
+    }
+
+    mapboxImageryLayerRef.current.show = mapboxSatellite;
+    viewerRef.current?.scene.requestRender();
+  }, [mapboxSatellite]);
 
   return <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-black" />;
 }
