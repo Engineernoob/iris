@@ -7,7 +7,6 @@ import {
   Cartesian3,
   Color,
   ConstantPositionProperty,
-  ConstantProperty,
   DistanceDisplayCondition,
   HorizontalOrigin,
   LabelStyle,
@@ -19,6 +18,18 @@ import {
 } from "cesium";
 
 import { fetchActiveSatelliteTles } from "@/lib/celestrak";
+import {
+  MAX_RENDERED_SATELLITES,
+  SATELLITE_LABEL_HEIGHT_THRESHOLD,
+  SATELLITE_TRAIL_ENTITY_ID,
+  SATELLITE_UPDATE_INTERVAL_MS,
+} from "@/lib/cesiumConfig";
+import {
+  createSatelliteEntityId,
+  selectedEntityIdForKind,
+  toSatelliteEntityMetadata,
+  updateEntityLabels,
+} from "@/lib/cesiumEntityUtils";
 import { fetchWithBackoff, warnFeedFailureOnce } from "@/lib/feedRetry";
 import type { PropagatedSatellite, SatellitePosition } from "@/lib/satellitePropagation";
 import {
@@ -26,11 +37,6 @@ import {
   propagateSatellitePosition,
 } from "@/lib/satellitePropagation";
 import { useWorldStore } from "@/store/useWorldStore";
-
-const SATELLITE_UPDATE_INTERVAL_MS = 5_000;
-const MAX_RENDERED_SATELLITES = 75;
-const SATELLITE_LABEL_HEIGHT_THRESHOLD = 2_200_000;
-const SATELLITE_TRAIL_ENTITY_ID = "satellite:selected-trail";
 
 type TrackedSatellite = {
   satellite: PropagatedSatellite;
@@ -44,35 +50,20 @@ type SatelliteRefs = {
   positionCacheByEntityId: Map<string, { bucket: number; position: SatellitePosition }>;
 };
 
-function toSatelliteEntityMetadata(
-  satellite: PropagatedSatellite,
-  position: SatellitePosition,
-): Record<string, string | number | boolean | null> {
-  return {
-    name: satellite.name,
-    NORAD: satellite.noradId,
-    altitude: `${position.altitudeKm.toFixed(1)} km`,
-    longitude: `${position.longitude.toFixed(4)} deg`,
-    latitude: `${position.latitude.toFixed(4)} deg`,
-    source: "CelesTrak",
-  };
-}
-
-function createSatelliteEntityId(noradId: string): string {
-  return `satellite:${noradId}`;
-}
-
 function shouldShowLabels(viewer: Viewer, moving: boolean): boolean {
   return !moving && viewer.camera.positionCartographic.height < SATELLITE_LABEL_HEIGHT_THRESHOLD;
 }
 
-function setSatelliteLabelsVisible(viewer: Viewer, refs: SatelliteRefs, visible: boolean) {
-  refs.entityIds.forEach((entityId) => {
-    const entity = viewer.entities.getById(entityId);
+function syncSatelliteLabels(viewer: Viewer, refs: SatelliteRefs, moving: boolean) {
+  const selectedNoradId = selectedEntityIdForKind("satellite");
+  const closeEnough = shouldShowLabels(viewer, moving);
 
-    if (entity?.label) {
-      entity.label.show = new ConstantProperty(visible);
+  updateEntityLabels(viewer, refs.entityIds, (entityId) => {
+    if (moving) {
+      return false;
     }
+
+    return closeEnough || entityId === createSatelliteEntityId(selectedNoradId ?? "");
   });
 }
 
@@ -98,11 +89,8 @@ function getCachedSatellitePosition(
   return position;
 }
 
-export function useSatelliteLayer(
-  viewerRef: RefObject<Viewer | null>,
-  ready: boolean,
-  active: boolean,
-) {
+export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: boolean) {
+  const active = useWorldStore((state) => state.activeLayers.satellites);
   const refsRef = useRef<SatelliteRefs>({
     entityIds: new Set(),
     satelliteByEntityId: new Map(),
@@ -219,7 +207,6 @@ export function useSatelliteLayer(
         warnedFailureRef.current = false;
 
         const liveEntityIds = new Set<string>();
-        const labelsVisible = shouldShowLabels(viewer, movingRef.current);
         const timestamp = Date.now();
 
         satellites.forEach((satellite) => {
@@ -243,12 +230,6 @@ export function useSatelliteLayer(
 
           if (positionProperty) {
             positionProperty.setValue(cesiumPosition);
-            const existingEntity = viewer.entities.getById(entityId);
-
-            if (existingEntity?.label) {
-              existingEntity.label.show = new ConstantProperty(labelsVisible);
-            }
-
             return;
           }
 
@@ -294,6 +275,7 @@ export function useSatelliteLayer(
         });
 
         refs.entityIds = liveEntityIds;
+        syncSatelliteLabels(viewer, refs, movingRef.current);
         viewer.scene.requestRender();
       } catch (error) {
         warnFeedFailureOnce("CelesTrak satellite", error, warnedFailureRef);
@@ -323,16 +305,25 @@ export function useSatelliteLayer(
         metadata: toSatelliteEntityMetadata(trackedSatellite.satellite, trackedSatellite.position),
       });
       drawSelectedSatelliteTrail(trackedSatellite.satellite);
+      syncSatelliteLabels(viewer, refs, movingRef.current);
       viewer.scene.requestRender();
     }, ScreenSpaceEventType.LEFT_CLICK);
 
     const removeMoveStart = viewer.camera.moveStart.addEventListener(() => {
       movingRef.current = true;
-      setSatelliteLabelsVisible(viewer, refs, false);
+      syncSatelliteLabels(viewer, refs, true);
     });
     const removeMoveEnd = viewer.camera.moveEnd.addEventListener(() => {
       movingRef.current = false;
-      setSatelliteLabelsVisible(viewer, refs, shouldShowLabels(viewer, false));
+      syncSatelliteLabels(viewer, refs, false);
+      viewer.scene.requestRender();
+    });
+    const unsubscribeSelection = useWorldStore.subscribe((state, previousState) => {
+      if (state.selectedEntity === previousState.selectedEntity) {
+        return;
+      }
+
+      syncSatelliteLabels(viewer, refs, movingRef.current);
       viewer.scene.requestRender();
     });
 
@@ -346,6 +337,7 @@ export function useSatelliteLayer(
       window.clearInterval(updateInterval);
       removeMoveStart();
       removeMoveEnd();
+      unsubscribeSelection();
       clickHandler.destroy();
       removeSatelliteEntities();
     };
