@@ -21,6 +21,15 @@ const aircraftFieldOrder = [
   ["source", "Source"],
 ] as const;
 
+const satelliteFieldOrder = [
+  ["name", "Name"],
+  ["NORAD", "NORAD ID"],
+  ["altitude", "Altitude"],
+  ["longitude", "Longitude"],
+  ["latitude", "Latitude"],
+  ["source", "Source"],
+] as const;
+
 export function InspectorPanel() {
   const selectedEntity = useWorldStore((state) => state.selectedEntity);
   const panelOpen = useWorldStore((state) => state.panels.right);
@@ -66,8 +75,19 @@ export function InspectorPanel() {
               <h3 className="mt-1 font-mono text-sm text-cyan-50">{selectedEntity.name}</h3>
             </div>
             <dl className="mt-3 space-y-2">
-              {selectedEntity.kind === "aircraft" && selectedEntity.metadata
-                ? aircraftFieldOrder.map(([key, label]) => (
+              {selectedEntity.metadata && selectedEntity.kind === "aircraft" ? (
+                aircraftFieldOrder.map(([key, label]) => (
+                  <div key={key} className="flex items-start justify-between gap-4">
+                    <dt className="text-[0.66rem] uppercase tracking-[0.14em] text-slate-500">
+                      {label}
+                    </dt>
+                    <dd className="max-w-40 text-right font-mono text-[0.68rem] tabular-nums text-slate-300">
+                      {String(selectedEntity.metadata?.[key] ?? "--")}
+                    </dd>
+                  </div>
+                ))
+              ) : selectedEntity.metadata && selectedEntity.kind === "satellite" ? (
+                satelliteFieldOrder.map(([key, label]) => (
                     <div key={key} className="flex items-start justify-between gap-4">
                       <dt className="text-[0.66rem] uppercase tracking-[0.14em] text-slate-500">
                         {label}
@@ -77,7 +97,7 @@ export function InspectorPanel() {
                       </dd>
                     </div>
                   ))
-                : (
+              ) : (
                     <>
                       <div className="flex items-center justify-between gap-4">
                         <dt className="text-[0.66rem] uppercase tracking-[0.14em] text-slate-500">Type</dt>

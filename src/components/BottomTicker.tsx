@@ -12,9 +12,12 @@ const tickerItems = [
 
 export function BottomTicker() {
   const aircraftLayerActive = useWorldStore((state) => state.activeLayers.aircraft);
-  const visibleTickerItems = aircraftLayerActive
-    ? ["OPEN SKY FEED ACTIVE", ...tickerItems.filter((item) => item !== "ADS-B ingest standby")]
-    : tickerItems;
+  const satellitesLayerActive = useWorldStore((state) => state.activeLayers.satellites);
+  const visibleTickerItems = [
+    ...(aircraftLayerActive ? ["OPEN SKY FEED ACTIVE"] : []),
+    ...(satellitesLayerActive ? ["CELESTRAK ORBIT FEED ACTIVE"] : []),
+    ...tickerItems.filter((item) => !aircraftLayerActive || item !== "ADS-B ingest standby"),
+  ];
 
   return (
     <footer className="absolute inset-x-0 bottom-0 z-30 px-3 pb-3 text-slate-300 sm:px-5">
@@ -31,7 +34,7 @@ export function BottomTicker() {
             >
               <span
                 className={`size-1 rounded-full ${
-                  item === "OPEN SKY FEED ACTIVE"
+                  item === "OPEN SKY FEED ACTIVE" || item === "CELESTRAK ORBIT FEED ACTIVE"
                     ? "bg-cyan-200/80 shadow-[0_0_10px_rgba(103,232,249,0.45)]"
                     : "bg-emerald-300/60"
                 }`}

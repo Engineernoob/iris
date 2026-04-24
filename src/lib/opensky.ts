@@ -37,7 +37,7 @@ type OpenSkyResponse = {
   states?: OpenSkyStateVector[];
 };
 
-const OPEN_SKY_STATES_URL = "https://opensky-network.org/api/states/all";
+const AIRCRAFT_API_URL = "/api/aircraft";
 
 function nullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
@@ -47,17 +47,7 @@ function stringValue(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export async function fetchAircraftStates(): Promise<AircraftState[]> {
-  const response = await fetch(OPEN_SKY_STATES_URL, {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(`OpenSky request failed with status ${response.status}`);
-  }
-
-  const data = (await response.json()) as OpenSkyResponse;
-
+export function normalizeOpenSkyStates(data: OpenSkyResponse): AircraftState[] {
   if (!Array.isArray(data.states)) {
     return [];
   }
@@ -86,4 +76,16 @@ export async function fetchAircraftStates(): Promise<AircraftState[]> {
       },
     ];
   });
+}
+
+export async function fetchAircraftStates(): Promise<AircraftState[]> {
+  const response = await fetch(AIRCRAFT_API_URL, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Aircraft feed request failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as AircraftState[];
 }
