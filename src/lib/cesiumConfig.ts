@@ -27,6 +27,7 @@ export const MAX_RENDERED_SATELLITES = 50;
 export const AIRCRAFT_LABEL_HEIGHT_THRESHOLD = 1_250_000;
 export const SATELLITE_LABEL_HEIGHT_THRESHOLD = 2_200_000;
 export const SATELLITE_TRAIL_ENTITY_ID = "satellite:selected-trail";
+export const AIRCRAFT_TRAIL_ENTITY_ID = "aircraft:selected-trail";
 
 export function createMapboxImageryProvider(token: string): UrlTemplateImageryProvider {
   return new UrlTemplateImageryProvider({

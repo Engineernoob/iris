@@ -5,8 +5,10 @@ import { useEffect, useRef } from "react";
 import {
   Cartesian2,
   Cartesian3,
+  CallbackProperty,
   Color,
   ConstantPositionProperty,
+  ConstantProperty,
   DistanceDisplayCondition,
   HorizontalOrigin,
   LabelStyle,
@@ -38,6 +40,8 @@ import {
 } from "@/lib/satellitePropagation";
 import { useWorldStore } from "@/store/useWorldStore";
 
+const SATELLITE_PULSE_INTERVAL_MS = 1000 / 12;
+
 type TrackedSatellite = {
   satellite: PropagatedSatellite;
   position: SatellitePosition;
@@ -52,6 +56,24 @@ type SatelliteRefs = {
 
 function shouldShowLabels(viewer: Viewer, moving: boolean): boolean {
   return !moving && viewer.camera.positionCartographic.height < SATELLITE_LABEL_HEIGHT_THRESHOLD;
+}
+
+function satelliteColor(position: SatellitePosition): Color {
+  return Color.fromCssColorString("#a7f3d0").withAlpha(position.altitudeKm < 2_000 ? 0.94 : 0.56);
+}
+
+function satelliteOutlineColor(position: SatellitePosition): Color {
+  return Color.fromCssColorString("#ecfeff").withAlpha(position.altitudeKm < 2_000 ? 0.72 : 0.36);
+}
+
+function satellitePulseSize(position: SatellitePosition, phaseSeed: number): CallbackProperty {
+  const baseSize = position.altitudeKm < 2_000 ? 5.6 : 4.2;
+
+  return new CallbackProperty(() => {
+    const pulse = (Math.sin(Date.now() / 520 + phaseSeed) + 1) * 0.5;
+
+    return baseSize + pulse * 2.1;
+  }, false);
 }
 
 function syncSatelliteLabels(viewer: Viewer, refs: SatelliteRefs, moving: boolean) {
@@ -198,13 +220,21 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
       requestInFlightRef.current = true;
 
       try {
+        const startedAt = performance.now();
         const satellites = await getSatelliteCatalog();
+        const completedAt = performance.now();
 
         if (cancelled || viewer.isDestroyed()) {
           return;
         }
 
         warnedFailureRef.current = false;
+        useWorldStore.getState().updateFeedStatus("satellites", {
+          online: true,
+          count: satellites.length,
+          latencyMs: Math.round(completedAt - startedAt),
+          updatedAt: new Date().toISOString(),
+        });
 
         const liveEntityIds = new Set<string>();
         const timestamp = Date.now();
@@ -230,6 +260,11 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
 
           if (positionProperty) {
             positionProperty.setValue(cesiumPosition);
+            const existingEntity = viewer.entities.getById(entityId);
+            if (existingEntity?.point) {
+              existingEntity.point.color = new ConstantProperty(satelliteColor(position));
+              existingEntity.point.outlineColor = new ConstantProperty(satelliteOutlineColor(position));
+            }
             return;
           }
 
@@ -241,9 +276,9 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
             name: satellite.name,
             position: newPositionProperty,
             point: {
-              pixelSize: 5,
-              color: Color.fromCssColorString("#a7f3d0").withAlpha(0.9),
-              outlineColor: Color.fromCssColorString("#ecfeff").withAlpha(0.55),
+              pixelSize: satellitePulseSize(position, Number(satellite.noradId) % 9),
+              color: satelliteColor(position),
+              outlineColor: satelliteOutlineColor(position),
               outlineWidth: 1,
               distanceDisplayCondition: new DistanceDisplayCondition(0, 24_000_000),
               disableDepthTestDistance: 4_000_000,
@@ -278,6 +313,9 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
         syncSatelliteLabels(viewer, refs, movingRef.current);
         viewer.scene.requestRender();
       } catch (error) {
+        useWorldStore.getState().updateFeedStatus("satellites", {
+          online: false,
+        });
         warnFeedFailureOnce("CelesTrak satellite", error, warnedFailureRef);
       } finally {
         requestInFlightRef.current = false;
@@ -331,10 +369,16 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
     const updateInterval = window.setInterval(() => {
       void updateSatelliteEntities();
     }, SATELLITE_UPDATE_INTERVAL_MS);
+    const pulseInterval = window.setInterval(() => {
+      if (refs.entityIds.size > 0) {
+        viewer.scene.requestRender();
+      }
+    }, SATELLITE_PULSE_INTERVAL_MS);
 
     return () => {
       cancelled = true;
       window.clearInterval(updateInterval);
+      window.clearInterval(pulseInterval);
       removeMoveStart();
       removeMoveEnd();
       unsubscribeSelection();

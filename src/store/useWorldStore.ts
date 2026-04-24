@@ -21,6 +21,18 @@ type GlobeSettings = {
   coordinates: Coordinates | null;
 };
 
+type FeedChannelStatus = {
+  online: boolean;
+  count: number;
+  latencyMs: number | null;
+  updatedAt: string | null;
+};
+
+type FeedStatus = {
+  aircraft: FeedChannelStatus;
+  satellites: FeedChannelStatus;
+};
+
 type WorldState = {
   activeLayers: Record<LayerId, boolean>;
   selectedEntity: SelectedEntity;
@@ -29,11 +41,13 @@ type WorldState = {
     right: boolean;
   };
   globe: GlobeSettings;
+  feeds: FeedStatus;
   toggleLayer: (layer: LayerId) => void;
   setLayerActive: (layer: LayerId, active: boolean) => void;
   setSelectedEntity: (entity: SelectedEntity) => void;
   setPanelOpen: (panel: keyof WorldState["panels"], open: boolean) => void;
   updateGlobeSettings: (settings: Partial<GlobeSettings>) => void;
+  updateFeedStatus: (feed: keyof FeedStatus, status: Partial<FeedChannelStatus>) => void;
 };
 
 export const useWorldStore = create<WorldState>((set) => ({
@@ -53,6 +67,20 @@ export const useWorldStore = create<WorldState>((set) => ({
     cameraHeightMeters: 18_500_000,
     zoomLevel: 1,
     coordinates: null,
+  },
+  feeds: {
+    aircraft: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
+    },
+    satellites: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
+    },
   },
   toggleLayer: (layer) =>
     set((state) => ({
@@ -81,6 +109,16 @@ export const useWorldStore = create<WorldState>((set) => ({
       globe: {
         ...state.globe,
         ...settings,
+      },
+    })),
+  updateFeedStatus: (feed, status) =>
+    set((state) => ({
+      feeds: {
+        ...state.feeds,
+        [feed]: {
+          ...state.feeds[feed],
+          ...status,
+        },
       },
     })),
 }));

@@ -2,12 +2,29 @@
 
 import { useEffect, useState } from "react";
 
+import { useWorldStore } from "@/store/useWorldStore";
+
 function formatUtcClock(date: Date): string {
   return date.toISOString().slice(11, 19);
 }
 
+function formatFeedUpdatedAt(updatedAt: string | null): string {
+  if (!updatedAt) {
+    return "--:--:-- UTC";
+  }
+
+  return `${new Date(updatedAt).toISOString().slice(11, 19)} UTC`;
+}
+
 export function TopBar() {
   const [utcTime, setUtcTime] = useState("--:--:--");
+  const feeds = useWorldStore((state) => state.feeds);
+  const latencyMs = Math.max(feeds.aircraft.latencyMs ?? 0, feeds.satellites.latencyMs ?? 0);
+  const updatedAt =
+    [feeds.aircraft.updatedAt, feeds.satellites.updatedAt]
+      .filter((value): value is string => Boolean(value))
+      .sort()
+      .at(-1) ?? null;
 
   useEffect(() => {
     const updateUtcTime = () => setUtcTime(formatUtcClock(new Date()));
@@ -42,8 +59,14 @@ export function TopBar() {
         </div>
         <div className="ml-auto hidden items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-slate-400 lg:flex">
           <span className="tabular-nums">UTC {utcTime}</span>
-          <span>LINK 98%</span>
-          <span>SYS NOM</span>
+          <span className={feeds.aircraft.online ? "text-cyan-100/80" : "text-slate-500"}>
+            AIR {feeds.aircraft.online ? "ONLINE" : "STANDBY"}
+          </span>
+          <span className={feeds.satellites.online ? "text-emerald-100/80" : "text-slate-500"}>
+            SAT {feeds.satellites.online ? "ONLINE" : "STANDBY"}
+          </span>
+          <span className="tabular-nums">LATENCY {latencyMs || "--"} MS</span>
+          <span className="tabular-nums">UPDATED {formatFeedUpdatedAt(updatedAt)}</span>
         </div>
         <div className="flex h-8 items-center gap-2 rounded-full bg-emerald-300/[0.08] px-2.5 ring-1 ring-emerald-200/10">
           <span className="size-1.5 rounded-full bg-emerald-300/80" />

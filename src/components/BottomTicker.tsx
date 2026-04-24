@@ -2,21 +2,26 @@
 
 import { useWorldStore } from "@/store/useWorldStore";
 
-const tickerItems = [
-  "TLM-04 imagery stream stable",
-  "ORB catalog sync T+00:18",
-  "ADS-B ingest standby",
-  "SIGINT queue nominal",
-  "Ground track prediction cached",
-];
+function formatAltitude(meters: number): string {
+  if (meters >= 1_000_000) {
+    return `${(meters / 1_000_000).toFixed(2)} Mm`;
+  }
+
+  return `${Math.round(meters / 1_000)} km`;
+}
 
 export function BottomTicker() {
   const aircraftLayerActive = useWorldStore((state) => state.activeLayers.aircraft);
   const satellitesLayerActive = useWorldStore((state) => state.activeLayers.satellites);
+  const feeds = useWorldStore((state) => state.feeds);
+  const cameraHeightMeters = useWorldStore((state) => state.globe.cameraHeightMeters);
+  const selectedEntity = useWorldStore((state) => state.selectedEntity);
   const visibleTickerItems = [
-    ...(aircraftLayerActive ? ["OPEN SKY FEED ACTIVE"] : []),
-    ...(satellitesLayerActive ? ["CELESTRAK ORBIT FEED ACTIVE"] : []),
-    ...tickerItems.filter((item) => !aircraftLayerActive || item !== "ADS-B ingest standby"),
+    aircraftLayerActive ? `${feeds.aircraft.count} aircraft tracked` : "aircraft layer standby",
+    satellitesLayerActive ? `${feeds.satellites.count} satellites tracked` : "satellite layer standby",
+    feeds.aircraft.online || feeds.satellites.online ? "feed synced" : "feed acquiring",
+    `camera altitude ${formatAltitude(cameraHeightMeters)}`,
+    `selected ${selectedEntity?.name ?? "none"}`,
   ];
 
   return (
