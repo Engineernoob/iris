@@ -16,6 +16,7 @@ import {
 
 export const CESIUM_BASE_URL = "/cesium";
 export const TARGET_FRAME_RATE = 30;
+export const INITIAL_CAMERA_HEIGHT_METERS = 14_500_000;
 export const TELEMETRY_UPDATE_INTERVAL_MS = 500;
 export const AUTO_ROTATE_INTERVAL_MS = 1000 / TARGET_FRAME_RATE;
 export const IDLE_RESUME_DELAY_MS = 4_500;
@@ -64,6 +65,21 @@ export function configureViewer(container: HTMLDivElement): Viewer {
   viewer.cesiumWidget.creditContainer.remove();
   viewer.scene.requestRenderMode = true;
   viewer.scene.maximumRenderTimeChange = Number.POSITIVE_INFINITY;
+
+  const cameraController = viewer.scene.screenSpaceCameraController;
+  cameraController.enableInputs = true;
+  cameraController.enableRotate = true;
+  cameraController.enableTranslate = true;
+  cameraController.enableZoom = true;
+  cameraController.enableTilt = true;
+  cameraController.enableLook = false;
+  cameraController.inertiaSpin = 0.72;
+  cameraController.inertiaTranslate = 0.72;
+  cameraController.inertiaZoom = 0.5;
+  cameraController.minimumZoomDistance = 450_000;
+  cameraController.maximumZoomDistance = 42_000_000;
+  cameraController.zoomFactor = 4.5;
+
   viewer.scene.backgroundColor = Color.fromCssColorString("#02040a");
   viewer.scene.highDynamicRange = true;
   viewer.scene.sunBloom = true;
@@ -106,10 +122,10 @@ export function configureViewer(container: HTMLDivElement): Viewer {
   }
 
   viewer.camera.setView({
-    destination: Cartesian3.fromDegrees(-48.5, 42.5, 11_800_000),
+    destination: Cartesian3.fromDegrees(-52.5, 40.5, INITIAL_CAMERA_HEIGHT_METERS),
     orientation: {
       heading: CesiumMath.toRadians(318),
-      pitch: CesiumMath.toRadians(-58),
+      pitch: CesiumMath.toRadians(-54),
       roll: 0,
     },
   });

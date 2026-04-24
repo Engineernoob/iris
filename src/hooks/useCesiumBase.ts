@@ -38,7 +38,20 @@ export function useCesiumBase(containerRef: RefObject<HTMLDivElement | null>) {
     viewer.scene.requestRender();
     setReady(true);
 
+    const removeCameraChanged = viewer.camera.changed.addEventListener(() => {
+      viewer.scene.requestRender();
+    });
+    const removeCameraMoveStart = viewer.camera.moveStart.addEventListener(() => {
+      viewer.scene.requestRender();
+    });
+    const removeCameraMoveEnd = viewer.camera.moveEnd.addEventListener(() => {
+      viewer.scene.requestRender();
+    });
+
     return () => {
+      removeCameraChanged();
+      removeCameraMoveStart();
+      removeCameraMoveEnd();
       setReady(false);
       if (!viewer.isDestroyed()) {
         viewer.destroy();

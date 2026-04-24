@@ -2,6 +2,8 @@ import { create } from "zustand";
 
 export type LayerId = "mapboxSatellite" | "aircraft" | "satellites" | "terrain" | "hud";
 
+const DEFAULT_CAMERA_HEIGHT_METERS = 14_500_000;
+
 export type SelectedEntity = {
   id: string;
   name: string;
@@ -64,7 +66,7 @@ export const useWorldStore = create<WorldState>((set) => ({
     right: true,
   },
   globe: {
-    cameraHeightMeters: 18_500_000,
+    cameraHeightMeters: DEFAULT_CAMERA_HEIGHT_METERS,
     zoomLevel: 1,
     coordinates: null,
   },
