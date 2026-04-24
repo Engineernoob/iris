@@ -2,6 +2,14 @@
 
 import { useWorldStore } from "@/store/useWorldStore";
 
+const placeholderFields = [
+  ["Type", "Unassigned"],
+  ["Signal", "No lock"],
+  ["Altitude", "-- km"],
+  ["Velocity", "-- m/s"],
+  ["Source", "Awaiting selection"],
+] as const;
+
 export function InspectorPanel() {
   const selectedEntity = useWorldStore((state) => state.selectedEntity);
   const panelOpen = useWorldStore((state) => state.panels.right);
@@ -11,7 +19,7 @@ export function InspectorPanel() {
     return (
       <button
         type="button"
-        className="absolute right-4 top-24 z-20 border border-emerald-300/30 bg-black/70 px-3 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-100 shadow-[0_0_24px_rgba(16,185,129,0.12)] backdrop-blur-md transition hover:border-emerald-200/60"
+        className="absolute right-4 top-20 z-20 min-h-10 rounded-xl bg-slate-950/55 px-3 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-slate-200 shadow-[0_0_34px_rgba(16,185,129,0.07)] ring-1 ring-white/[0.08] backdrop-blur-xl transition-colors hover:bg-slate-900/70"
         onClick={() => setPanelOpen("right", true)}
       >
         Inspector
@@ -20,24 +28,24 @@ export function InspectorPanel() {
   }
 
   return (
-    <aside className="absolute right-4 top-24 z-20 w-[min(21rem,calc(100vw-2rem))] border border-emerald-300/20 bg-slate-950/70 text-slate-100 shadow-[0_0_36px_rgba(16,185,129,0.12)] backdrop-blur-xl">
-      <div className="flex items-center justify-between border-b border-emerald-300/15 px-4 py-3">
+    <aside className="absolute right-4 top-20 z-20 w-[min(19rem,calc(100vw-2rem))] rounded-2xl bg-slate-950/48 text-slate-100 shadow-[0_0_40px_rgba(16,185,129,0.06),0_20px_70px_rgba(0,0,0,0.28)] ring-1 ring-white/[0.08] backdrop-blur-2xl">
+      <div className="flex items-center justify-between px-4 pb-2 pt-3.5">
         <div>
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-emerald-200/80">
+          <p className="text-[0.6rem] font-medium uppercase tracking-[0.22em] text-slate-500">
             Inspector
           </p>
-          <h2 className="mt-1 text-sm font-semibold text-white">Selected Entity</h2>
+          <h2 className="mt-1 text-xs font-medium text-slate-200">Selected entity</h2>
         </div>
         <button
           type="button"
-          className="grid size-8 place-items-center border border-slate-600/70 text-slate-300 transition hover:border-emerald-300/60 hover:text-emerald-100"
+          className="grid size-10 place-items-center rounded-xl text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-200 active:scale-[0.96]"
           aria-label="Collapse inspector panel"
           onClick={() => setPanelOpen("right", false)}
         >
           -
         </button>
       </div>
-      <div className="p-4">
+      <div className="px-4 pb-4 pt-1">
         {selectedEntity ? (
           <dl className="space-y-3 text-sm">
             <div>
@@ -54,11 +62,26 @@ export function InspectorPanel() {
             </div>
           </dl>
         ) : (
-          <div className="min-h-44 border border-dashed border-slate-700/80 bg-black/20 p-4">
-            <p className="text-sm text-slate-300">No entity selected</p>
-            <p className="mt-3 text-xs leading-6 text-slate-500">
-              Aircraft, satellite, terrain, and alert metadata will appear here when live layers are connected.
-            </p>
+          <div className="rounded-xl bg-white/[0.035] p-3 ring-1 ring-white/[0.06]">
+            <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
+              <div className="relative grid size-10 place-items-center rounded-full bg-slate-900/80 ring-1 ring-white/[0.08]">
+                <span className="size-4 rounded-full border border-slate-500/70" />
+                <span className="absolute h-px w-6 bg-slate-500/50" />
+                <span className="absolute h-6 w-px bg-slate-500/50" />
+              </div>
+              <div>
+                <p className="text-[0.8rem] font-medium text-slate-200">No entity selected</p>
+                <p className="mt-0.5 text-[0.66rem] text-slate-500">Target metadata standby</p>
+              </div>
+            </div>
+            <dl className="mt-3 space-y-2">
+              {placeholderFields.map(([label, value]) => (
+                <div key={label} className="flex items-center justify-between gap-4">
+                  <dt className="text-[0.66rem] uppercase tracking-[0.14em] text-slate-500">{label}</dt>
+                  <dd className="font-mono text-[0.68rem] tabular-nums text-slate-400">{value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         )}
       </div>

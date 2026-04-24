@@ -1,22 +1,26 @@
 const tickerItems = [
-  "Telemetry bus initialized",
-  "Awaiting live aircraft feed",
-  "Satellite pass prediction standby",
-  "Mapbox imagery layer active",
+  "TLM-04 imagery stream stable",
+  "ORB catalog sync T+00:18",
+  "ADS-B ingest standby",
+  "SIGINT queue nominal",
+  "Ground track prediction cached",
 ];
 
 export function BottomTicker() {
   return (
-    <footer className="absolute inset-x-0 bottom-0 z-30 border-t border-cyan-300/15 bg-slate-950/70 text-slate-300 backdrop-blur-xl">
-      <div className="flex min-h-12 items-center gap-4 overflow-hidden px-4 sm:px-6">
-        <div className="shrink-0 text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-cyan-200">
-          Live Events
+    <footer className="absolute inset-x-0 bottom-0 z-30 px-3 pb-3 text-slate-300 sm:px-5">
+      <div className="mx-auto flex min-h-10 max-w-[1520px] items-center gap-3 overflow-hidden rounded-2xl bg-slate-950/42 px-3 shadow-[0_0_40px_rgba(14,165,233,0.06),0_18px_70px_rgba(0,0,0,0.24)] ring-1 ring-white/[0.08] backdrop-blur-2xl">
+        <div className="shrink-0 text-[0.6rem] font-medium uppercase tracking-[0.22em] text-slate-500">
+          Telemetry
         </div>
-        <div className="h-5 w-px shrink-0 bg-cyan-300/20" />
-        <div className="flex min-w-0 flex-1 items-center gap-6 overflow-hidden whitespace-nowrap text-xs uppercase tracking-[0.18em] text-slate-400">
+        <div className="h-4 w-px shrink-0 bg-white/10" />
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap">
           {tickerItems.map((item) => (
-            <span key={item} className="inline-flex items-center gap-3">
-              <span className="size-1.5 bg-emerald-300/80" />
+            <span
+              key={item}
+              className="inline-flex h-6 shrink-0 items-center gap-2 rounded-full bg-white/[0.045] px-2.5 font-mono text-[0.63rem] uppercase tracking-[0.12em] text-slate-400 ring-1 ring-white/[0.06]"
+            >
+              <span className="size-1 rounded-full bg-emerald-300/60" />
               {item}
             </span>
           ))}

@@ -1,29 +1,46 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export function TopBar() {
+  const [utcTime, setUtcTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setUtcTime(new Date()), 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
-    <header className="absolute inset-x-0 top-0 z-30 border-b border-cyan-300/15 bg-slate-950/70 text-slate-100 shadow-[0_10px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl">
-      <div className="flex min-h-16 items-center gap-3 px-4 sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="grid size-9 place-items-center border border-cyan-300/40 bg-cyan-300/10 text-sm font-black tracking-widest text-cyan-100">
-            IR
+    <header className="absolute inset-x-0 top-0 z-30 px-3 pt-3 text-slate-100 sm:px-5">
+      <div className="mx-auto flex min-h-12 max-w-[1520px] items-center gap-3 rounded-2xl bg-slate-950/45 px-3 shadow-[0_0_40px_rgba(14,165,233,0.07),0_18px_80px_rgba(0,0,0,0.28)] ring-1 ring-white/[0.08] backdrop-blur-2xl sm:px-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="grid size-7 place-items-center rounded-lg bg-white/[0.06] text-[0.63rem] font-semibold tracking-[0.18em] text-cyan-100 ring-1 ring-white/[0.08]">
+            I
           </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold uppercase tracking-[0.34em] text-white">IRIS</h1>
-            <p className="hidden text-[0.62rem] uppercase tracking-[0.24em] text-cyan-200/70 sm:block">
-              Spatial Intelligence Console
-            </p>
+          <div className="flex min-w-0 items-baseline gap-2">
+            <h1 className="truncate text-[0.78rem] font-semibold tracking-[0.28em] text-white">IRIS</h1>
+            <span className="hidden text-[0.62rem] font-medium uppercase tracking-[0.16em] text-slate-500 sm:inline">
+              Spatial Ops
+            </span>
           </div>
         </div>
-        <div className="mx-auto hidden w-full max-w-xl items-center border border-slate-700/70 bg-black/30 px-3 py-2 md:flex">
-          <span className="mr-3 h-2 w-2 bg-cyan-300 shadow-[0_0_14px_rgba(103,232,249,0.9)]" />
+        <div className="mx-auto hidden h-8 w-full max-w-md items-center rounded-xl bg-white/[0.04] px-3 ring-1 ring-white/[0.07] md:flex">
+          <span className="mr-2 size-1.5 rounded-full bg-cyan-200/70" />
           <input
-            className="w-full bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600"
-            placeholder="Search coordinates, callsign, NORAD ID"
+            className="w-full bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-600"
+            placeholder="Search coordinates, asset, signal"
             aria-label="Search"
           />
         </div>
-        <div className="ml-auto flex items-center gap-2 border border-emerald-300/20 bg-emerald-400/10 px-3 py-2">
-          <span className="size-2 bg-emerald-300 shadow-[0_0_14px_rgba(110,231,183,0.9)]" />
-          <span className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-emerald-100">
+        <div className="ml-auto hidden items-center gap-3 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-slate-400 lg:flex">
+          <span className="tabular-nums">UTC {utcTime.toISOString().slice(11, 19)}</span>
+          <span>LINK 98%</span>
+          <span>SYS NOM</span>
+        </div>
+        <div className="flex h-8 items-center gap-2 rounded-full bg-emerald-300/[0.08] px-2.5 ring-1 ring-emerald-200/10">
+          <span className="size-1.5 rounded-full bg-emerald-300/80" />
+          <span className="text-[0.62rem] font-medium uppercase tracking-[0.18em] text-emerald-100/80">
             Online
           </span>
         </div>
