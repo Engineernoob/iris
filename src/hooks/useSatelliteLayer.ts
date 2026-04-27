@@ -30,7 +30,6 @@ import {
   createSatelliteEntityId,
   selectedEntityIdForKind,
   toSatelliteEntityMetadata,
-  updateEntityLabels,
 } from "@/lib/cesiumEntityUtils";
 import { fetchWithBackoff, warnFeedFailureOnce } from "@/lib/feedRetry";
 import type { PropagatedSatellite, SatellitePosition } from "@/lib/satellitePropagation";
@@ -49,6 +48,7 @@ type TrackedSatellite = {
 
 type SatelliteRefs = {
   entityIds: Set<string>;
+  entityById: Map<string, import("cesium").Entity>;
   satelliteByEntityId: Map<string, TrackedSatellite>;
   positionByEntityId: Map<string, ConstantPositionProperty>;
   positionCacheByEntityId: Map<string, { bucket: number; position: SatellitePosition }>;
@@ -58,12 +58,21 @@ function shouldShowLabels(viewer: Viewer, moving: boolean): boolean {
   return !moving && viewer.camera.positionCartographic.height < SATELLITE_LABEL_HEIGHT_THRESHOLD;
 }
 
+const SATELLITE_COLOR_LOW = Color.fromCssColorString("#a7f3d0");
+const SATELLITE_COLOR_HIGH = SATELLITE_COLOR_LOW.withAlpha(0.56);
+const SATELLITE_COLOR_LOW_ALPHA = SATELLITE_COLOR_LOW.withAlpha(0.94);
+const SATELLITE_OUTLINE_LOW = Color.fromCssColorString("#ecfeff");
+const SATELLITE_OUTLINE_HIGH = SATELLITE_OUTLINE_LOW.withAlpha(0.36);
+const SATELLITE_OUTLINE_LOW_ALPHA = SATELLITE_OUTLINE_LOW.withAlpha(0.72);
+const SATELLITE_LABEL_FILL = SATELLITE_OUTLINE_LOW.withAlpha(0.9);
+const SATELLITE_LABEL_OUTLINE = Color.fromCssColorString("#020617").withAlpha(0.92);
+
 function satelliteColor(position: SatellitePosition): Color {
-  return Color.fromCssColorString("#a7f3d0").withAlpha(position.altitudeKm < 2_000 ? 0.94 : 0.56);
+  return position.altitudeKm < 2_000 ? SATELLITE_COLOR_LOW_ALPHA : SATELLITE_COLOR_HIGH;
 }
 
 function satelliteOutlineColor(position: SatellitePosition): Color {
-  return Color.fromCssColorString("#ecfeff").withAlpha(position.altitudeKm < 2_000 ? 0.72 : 0.36);
+  return position.altitudeKm < 2_000 ? SATELLITE_OUTLINE_LOW_ALPHA : SATELLITE_OUTLINE_HIGH;
 }
 
 function satellitePulseSize(position: SatellitePosition, phaseSeed: number): CallbackProperty {
@@ -79,13 +88,17 @@ function satellitePulseSize(position: SatellitePosition, phaseSeed: number): Cal
 function syncSatelliteLabels(viewer: Viewer, refs: SatelliteRefs, moving: boolean) {
   const selectedNoradId = selectedEntityIdForKind("satellite");
   const closeEnough = shouldShowLabels(viewer, moving);
-
-  updateEntityLabels(viewer, refs.entityIds, (entityId) => {
+  const showPredicate = (entityId: string) => {
     if (moving) {
       return false;
     }
-
     return closeEnough || entityId === createSatelliteEntityId(selectedNoradId ?? "");
+  };
+
+  refs.entityById.forEach((entity, entityId) => {
+    if (entity?.label) {
+      entity.label.show = new ConstantProperty(showPredicate(entityId));
+    }
   });
 }
 
@@ -115,6 +128,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
   const active = useWorldStore((state) => state.activeLayers.satellites);
   const refsRef = useRef<SatelliteRefs>({
     entityIds: new Set(),
+    entityById: new Map(),
     satelliteByEntityId: new Map(),
     positionByEntityId: new Map(),
     positionCacheByEntityId: new Map(),
@@ -139,6 +153,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
       });
       viewer.entities.removeById(SATELLITE_TRAIL_ENTITY_ID);
       refs.entityIds.clear();
+      refs.entityById.clear();
       refs.satelliteByEntityId.clear();
       refs.positionByEntityId.clear();
       refs.positionCacheByEntityId.clear();
@@ -260,7 +275,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
 
           if (positionProperty) {
             positionProperty.setValue(cesiumPosition);
-            const existingEntity = viewer.entities.getById(entityId);
+            const existingEntity = refs.entityById.get(entityId);
             if (existingEntity?.point) {
               existingEntity.point.color = new ConstantProperty(satelliteColor(position));
               existingEntity.point.outlineColor = new ConstantProperty(satelliteOutlineColor(position));
@@ -271,7 +286,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
           const newPositionProperty = new ConstantPositionProperty(cesiumPosition);
           refs.positionByEntityId.set(entityId, newPositionProperty);
 
-          viewer.entities.add({
+          const entity = viewer.entities.add({
             id: entityId,
             name: satellite.name,
             position: newPositionProperty,
@@ -287,8 +302,8 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
               show: false,
               text: satellite.name,
               font: "500 10px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-              fillColor: Color.fromCssColorString("#ecfeff").withAlpha(0.9),
-              outlineColor: Color.fromCssColorString("#020617").withAlpha(0.92),
+              fillColor: SATELLITE_LABEL_FILL,
+              outlineColor: SATELLITE_LABEL_OUTLINE,
               outlineWidth: 3,
               style: LabelStyle.FILL_AND_OUTLINE,
               horizontalOrigin: HorizontalOrigin.CENTER,
@@ -298,11 +313,13 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
               disableDepthTestDistance: Number.POSITIVE_INFINITY,
             },
           });
+          refs.entityById.set(entityId, entity);
         });
 
         refs.entityIds.forEach((entityId) => {
           if (!liveEntityIds.has(entityId)) {
             viewer.entities.removeById(entityId);
+            refs.entityById.delete(entityId);
             refs.satelliteByEntityId.delete(entityId);
             refs.positionByEntityId.delete(entityId);
             refs.positionCacheByEntityId.delete(entityId);
@@ -370,7 +387,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
       void updateSatelliteEntities();
     }, SATELLITE_UPDATE_INTERVAL_MS);
     const pulseInterval = window.setInterval(() => {
-      if (refs.entityIds.size > 0) {
+      if (refs.entityIds.size > 0 && !movingRef.current) {
         viewer.scene.requestRender();
       }
     }, SATELLITE_PULSE_INTERVAL_MS);

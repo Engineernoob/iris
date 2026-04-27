@@ -4,12 +4,13 @@ import { parseTleCatalog } from "@/lib/celestrak";
 
 const CELESTRAK_ACTIVE_TLE_URL =
   "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle";
-
-export const revalidate = 3600;
-export const dynamic = "force-dynamic";
+const SATELLITE_CACHE_TTL_MS = 3_600_000;
 const cacheHeaders = {
   "Cache-Control": "s-maxage=3600, stale-while-revalidate=3600",
 };
+
+let cachedData: ReturnType<typeof parseTleCatalog> = [];
+let cachedAt = 0;
 
 export async function GET() {
   try {
@@ -18,17 +19,23 @@ export async function GET() {
     });
 
     if (!response.ok) {
-      return NextResponse.json([], {
-        headers: cacheHeaders,
-      });
+      if (cachedData.length > 0) {
+        return NextResponse.json(cachedData, { headers: cacheHeaders });
+      }
+      return NextResponse.json([], { headers: cacheHeaders });
     }
 
-    return NextResponse.json(parseTleCatalog(await response.text()), {
+    const text = await response.text();
+    cachedData = parseTleCatalog(text);
+    cachedAt = Date.now();
+
+    return NextResponse.json(cachedData, {
       headers: cacheHeaders,
     });
   } catch {
-    return NextResponse.json([], {
-      headers: cacheHeaders,
-    });
+    if (cachedData.length > 0 && Date.now() - cachedAt < SATELLITE_CACHE_TTL_MS) {
+      return NextResponse.json(cachedData, { headers: cacheHeaders });
+    }
+    return NextResponse.json([], { headers: cacheHeaders });
   }
 }

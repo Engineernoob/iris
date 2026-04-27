@@ -35,7 +35,6 @@ import {
   getAircraftVisualState,
   selectedEntityIdForKind,
   toAircraftEntityMetadata,
-  updateEntityLabels,
 } from "@/lib/cesiumEntityUtils";
 import { fetchWithBackoff, warnFeedFailureOnce } from "@/lib/feedRetry";
 import type { AircraftState } from "@/lib/opensky";
@@ -46,19 +45,22 @@ const AIRCRAFT_ANIMATION_INTERVAL_MS = 1000 / 15;
 const AIRCRAFT_TRAIL_MAX_POINTS = 24;
 const AIRCRAFT_TRAIL_SAMPLE_MS = 1_200;
 
+const LABEL_FILL_COLOR = Color.fromCssColorString("#dffcff").withAlpha(0.92);
+const LABEL_OUTLINE_COLOR = Color.fromCssColorString("#020617").withAlpha(0.9);
+
+type Interpolation = {
+  from: Cartesian3;
+  to: Cartesian3;
+  startedAt: number;
+  endsAt: number;
+};
+
 type AircraftRefs = {
   entityIds: Set<string>;
+  entityById: Map<string, import("cesium").Entity>;
   aircraftByEntityId: Map<string, AircraftState>;
   positionByEntityId: Map<string, ConstantPositionProperty>;
-  interpolationByEntityId: Map<
-    string,
-    {
-      from: Cartesian3;
-      to: Cartesian3;
-      startedAt: number;
-      endsAt: number;
-    }
-  >;
+  interpolationByEntityId: Map<string, Interpolation>;
   visualStateByEntityId: Map<string, string>;
 };
 
@@ -82,13 +84,17 @@ function shouldShowLabels(viewer: Viewer, moving: boolean): boolean {
 function syncAircraftLabels(viewer: Viewer, refs: AircraftRefs, moving: boolean) {
   const selectedIcao24 = selectedEntityIdForKind("aircraft")?.toLowerCase() ?? null;
   const closeEnough = shouldShowLabels(viewer, moving);
-
-  updateEntityLabels(viewer, refs.entityIds, (entityId) => {
+  const showPredicate = (entityId: string) => {
     if (moving) {
       return false;
     }
-
     return closeEnough || entityId === createAircraftEntityId(selectedIcao24 ?? "");
+  };
+
+  refs.entityById.forEach((entity, entityId) => {
+    if (entity?.label) {
+      entity.label.show = new ConstantProperty(showPredicate(entityId));
+    }
   });
 }
 
@@ -96,6 +102,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
   const active = useWorldStore((state) => state.activeLayers.aircraft);
   const refsRef = useRef<AircraftRefs>({
     entityIds: new Set(),
+    entityById: new Map(),
     aircraftByEntityId: new Map(),
     positionByEntityId: new Map(),
     interpolationByEntityId: new Map(),
@@ -121,6 +128,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
         viewer.entities.removeById(entityId);
       });
       refs.entityIds.clear();
+      refs.entityById.clear();
       refs.aircraftByEntityId.clear();
       refs.positionByEntityId.clear();
       refs.interpolationByEntityId.clear();
@@ -255,7 +263,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
           refs.positionByEntityId.set(entityId, newPositionProperty);
           refs.visualStateByEntityId.set(entityId, visualState);
 
-          viewer.entities.add({
+          const entity = viewer.entities.add({
             id: entityId,
             name: label,
             position: newPositionProperty,
@@ -273,8 +281,8 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
               show: false,
               text: label,
               font: "500 11px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-              fillColor: Color.fromCssColorString("#dffcff").withAlpha(0.92),
-              outlineColor: Color.fromCssColorString("#020617").withAlpha(0.9),
+              fillColor: LABEL_FILL_COLOR,
+              outlineColor: LABEL_OUTLINE_COLOR,
               outlineWidth: 3,
               style: LabelStyle.FILL_AND_OUTLINE,
               horizontalOrigin: HorizontalOrigin.CENTER,
@@ -284,11 +292,13 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
               disableDepthTestDistance: Number.POSITIVE_INFINITY,
             },
           });
+          refs.entityById.set(entityId, entity);
         });
 
         refs.entityIds.forEach((entityId) => {
           if (!liveEntityIds.has(entityId)) {
             viewer.entities.removeById(entityId);
+            refs.entityById.delete(entityId);
             refs.aircraftByEntityId.delete(entityId);
             refs.positionByEntityId.delete(entityId);
             refs.interpolationByEntityId.delete(entityId);
@@ -360,35 +370,44 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
     }, AIRCRAFT_REFRESH_INTERVAL_MS);
     const animationInterval = window.setInterval(() => {
       const now = Date.now();
-      let changed = false;
 
       refs.interpolationByEntityId.forEach((interpolation, entityId) => {
         const positionProperty = refs.positionByEntityId.get(entityId);
         if (!positionProperty) {
+          refs.interpolationByEntityId.delete(entityId);
           return;
         }
 
-        const denominator = Math.max(interpolation.endsAt - interpolation.startedAt, 1);
+        const denominator = interpolation.endsAt - interpolation.startedAt;
+        if (denominator <= 0) {
+          refs.interpolationByEntityId.delete(entityId);
+          return;
+        }
+
         const t = Math.min(Math.max((now - interpolation.startedAt) / denominator, 0), 1);
         const eased = t * t * (3 - 2 * t);
-        const interpolatedPosition = Cartesian3.lerp(
+        const interpolatedPosition = new Cartesian3();
+        Cartesian3.lerp(
           interpolation.from,
           interpolation.to,
           eased,
-          new Cartesian3(),
+          interpolatedPosition,
         );
 
         positionProperty.setValue(interpolatedPosition);
-        changed = true;
 
         if (t >= 1) {
           refs.interpolationByEntityId.delete(entityId);
         }
       });
 
+      if (refs.interpolationByEntityId.size > 0) {
+        viewer.scene.requestRender();
+      }
+
       syncAircraftTrail(now);
 
-      if (changed || trailPositionsRef.current.length > 0) {
+      if (trailPositionsRef.current.length > 0) {
         viewer.scene.requestRender();
       }
     }, AIRCRAFT_ANIMATION_INTERVAL_MS);

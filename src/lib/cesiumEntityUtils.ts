@@ -1,5 +1,3 @@
-import { ConstantProperty, Viewer } from "cesium";
-
 import type { AircraftState } from "@/lib/opensky";
 import type { PropagatedSatellite, SatellitePosition } from "@/lib/satellitePropagation";
 import { useWorldStore } from "@/store/useWorldStore";
@@ -45,11 +43,20 @@ export function getAircraftVisualColor(state: AircraftVisualState): string {
   return "#67e8f9";
 }
 
+const ICON_CACHE = new Map<AircraftVisualState, string>();
+
 export function getAircraftIconDataUrl(state: AircraftVisualState): string {
+  const cached = ICON_CACHE.get(state);
+  if (cached) {
+    return cached;
+  }
+
   const fill = getAircraftVisualColor(state);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><path d="M18 2 28 31 18 26 8 31 18 2Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1.6"/><path d="M18 8v17" stroke="#020617" stroke-opacity=".5" stroke-width="1.4"/></svg>`;
 
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  const dataUrl = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  ICON_CACHE.set(state, dataUrl);
+  return dataUrl;
 }
 
 function formatNullableMetric(value: number | null, suffix: string, fractionDigits = 0): string {
@@ -105,18 +112,4 @@ export function selectedEntityIdForKind(kind: "aircraft" | "satellite"): string 
   }
 
   return selectedEntity.id;
-}
-
-export function updateEntityLabels(
-  viewer: Viewer,
-  entityIds: Set<string>,
-  visible: (entityId: string) => boolean,
-) {
-  entityIds.forEach((entityId) => {
-    const entity = viewer.entities.getById(entityId);
-
-    if (entity?.label) {
-      entity.label.show = new ConstantProperty(visible(entityId));
-    }
-  });
 }
