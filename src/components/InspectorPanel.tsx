@@ -57,7 +57,7 @@ function InspectorPanel() {
     return (
       <button
         type="button"
-        className="absolute right-4 top-20 z-20 flex h-10 items-center gap-2 rounded-lg bg-slate-950/70 px-3 text-[0.65rem] font-medium uppercase tracking-wider text-slate-400 transition-all hover:bg-slate-900/80 hover:text-slate-200 active:scale-[0.97]"
+        className="absolute right-4 top-20 z-20 flex h-10 items-center gap-2 rounded-lg bg-slate-950/70 px-3 text-[0.65rem] font-medium uppercase tracking-wider text-slate-400 transition-transform hover:bg-slate-900/80 hover:text-slate-200 active:scale-[0.96]"
         onClick={() => setPanelOpen("right", true)}
       >
         <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -76,7 +76,7 @@ function InspectorPanel() {
         </p>
         <button
           type="button"
-          className="grid size-8 place-items-center rounded-md text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-300 active:scale-[0.95]"
+          className="grid size-8 place-items-center rounded-md text-slate-500 transition-transform hover:bg-white/[0.05] hover:text-slate-300 active:scale-[0.96]"
           aria-label="Collapse inspector panel"
           onClick={() => setPanelOpen("right", false)}
         >

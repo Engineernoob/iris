@@ -29,7 +29,7 @@ function LayerPanel() {
     return (
       <button
         type="button"
-        className="absolute left-4 top-20 z-20 flex h-10 items-center gap-2 rounded-lg bg-slate-950/70 px-3 text-[0.65rem] font-medium uppercase tracking-wider text-slate-400 transition-all hover:bg-slate-900/80 hover:text-slate-200 active:scale-[0.97]"
+        className="absolute left-4 top-20 z-20 flex h-10 items-center gap-2 rounded-lg bg-slate-950/70 px-3 text-[0.65rem] font-medium uppercase tracking-wider text-slate-400 transition-transform hover:bg-slate-900/80 hover:text-slate-200 active:scale-[0.96]"
         onClick={() => setPanelOpen("left", true)}
       >
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -67,7 +67,7 @@ function LayerPanel() {
             <button
               key={layer.id}
               type="button"
-              className="group grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-lg px-2.5 py-2.5 text-left transition-all hover:bg-white/[0.04] active:scale-[0.98]"
+              className="group grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-lg px-2.5 py-2.5 text-left transition-transform hover:bg-white/[0.04] active:scale-[0.96]"
               onClick={() => toggleLayer(layer.id)}
               aria-pressed={active}
             >
@@ -82,17 +82,17 @@ function LayerPanel() {
                   {layer.detail}
                 </span>
               </span>
-              <div
-                className={`h-6 w-11 rounded-full p-0.5 transition-colors ${
-                  active ? "bg-cyan-400/20" : "bg-white/[0.03]"
-                }`}
-              >
                 <div
-                  className={`size-5 rounded-full shadow-sm transition-all ${
-                    active ? "translate-x-5 bg-cyan-400" : "translate-x-0 bg-slate-500"
+                  className={`h-6 w-11 rounded-full p-0.5 transition-colors ${
+                    active ? "bg-cyan-400/20" : "bg-white/[0.03]"
                   }`}
-                />
-              </div>
+                >
+                  <div
+                    className={`size-5 rounded-full shadow-sm transition-transform ${
+                      active ? "translate-x-5 bg-cyan-400" : "translate-x-0 bg-slate-500"
+                    }`}
+                  />
+                </div>
             </button>
           );
         })}

@@ -41,8 +41,8 @@ function BottomTicker() {
 
   return (
     <footer className="absolute inset-x-0 bottom-0 z-30 px-3 pb-3 sm:px-5">
-      <div className="mx-auto flex min-h-10 max-w-[1520px] items-center gap-3 overflow-hidden rounded-xl bg-slate-950/60 px-3 ring-1 ring-white/[0.06] backdrop-blur-xl">
-        <div className="shrink-0 text-[0.6rem] font-medium uppercase tracking-widest text-slate-500">
+        <div className="mx-auto flex min-h-10 max-w-[1520px] items-center gap-3 overflow-hidden rounded-xl bg-slate-950/60 px-3 ring-1 ring-white/[0.06] backdrop-blur-xl tabular-nums">
+        <div className="shrink-0 text-[0.6rem] font-medium uppercase tracking-widest text-slate-500 tabular-nums">
           Live
         </div>
         <div className="h-4 w-px shrink-0 bg-white/10" />
@@ -50,7 +50,7 @@ function BottomTicker() {
           {visibleTickerItems.map((item) => (
             <span
               key={item}
-              className="inline-flex h-6 shrink-0 items-center rounded-md bg-white/[0.04] px-2.5 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400"
+              className="inline-flex h-6 shrink-0 items-center rounded-md bg-white/[0.04] px-2.5 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 transition-transform"
             >
               {item}
             </span>

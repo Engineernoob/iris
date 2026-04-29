@@ -146,13 +146,13 @@ function HudOverlay() {
         style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
         onMouseDown={handleMouseDown}
       >
-        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md">
+        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md tabular-nums">
           {coordinateText}
         </div>
-        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md">
+        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md tabular-nums">
           Zoom: {globe.zoomLevel.toFixed(1)}
         </div>
-        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md">
+        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md tabular-nums">
           Alt: {formatAltitude(globe.cameraHeightMeters)}
         </div>
       </div>
