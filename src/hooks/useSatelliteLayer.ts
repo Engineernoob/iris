@@ -39,7 +39,7 @@ import {
 } from "@/lib/satellitePropagation";
 import { useWorldStore } from "@/store/useWorldStore";
 
-const SATELLITE_PULSE_INTERVAL_MS = 1000 / 12;
+const SATELLITE_PULSE_INTERVAL_MS = 1000 / 6;
 
 type TrackedSatellite = {
   satellite: PropagatedSatellite;
@@ -51,6 +51,7 @@ type SatelliteRefs = {
   entityById: Map<string, import("cesium").Entity>;
   satelliteByEntityId: Map<string, TrackedSatellite>;
   positionByEntityId: Map<string, ConstantPositionProperty>;
+  labelVisibilityByEntityId: Map<string, ConstantProperty>;
   positionCacheByEntityId: Map<string, { bucket: number; position: SatellitePosition }>;
 };
 
@@ -96,9 +97,7 @@ function syncSatelliteLabels(viewer: Viewer, refs: SatelliteRefs, moving: boolea
   };
 
   refs.entityById.forEach((entity, entityId) => {
-    if (entity?.label) {
-      entity.label.show = new ConstantProperty(showPredicate(entityId));
-    }
+    refs.labelVisibilityByEntityId.get(entityId)?.setValue(showPredicate(entityId));
   });
 }
 
@@ -131,6 +130,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
     entityById: new Map(),
     satelliteByEntityId: new Map(),
     positionByEntityId: new Map(),
+    labelVisibilityByEntityId: new Map(),
     positionCacheByEntityId: new Map(),
   });
   const satelliteCatalogRef = useRef<PropagatedSatellite[] | null>(null);
@@ -156,6 +156,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
       refs.entityById.clear();
       refs.satelliteByEntityId.clear();
       refs.positionByEntityId.clear();
+      refs.labelVisibilityByEntityId.clear();
       refs.positionCacheByEntityId.clear();
 
       const { selectedEntity, setSelectedEntity } = useWorldStore.getState();
@@ -284,7 +285,9 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
           }
 
           const newPositionProperty = new ConstantPositionProperty(cesiumPosition);
+          const labelVisibilityProperty = new ConstantProperty(false);
           refs.positionByEntityId.set(entityId, newPositionProperty);
+          refs.labelVisibilityByEntityId.set(entityId, labelVisibilityProperty);
 
           const entity = viewer.entities.add({
             id: entityId,
@@ -299,7 +302,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
               disableDepthTestDistance: 4_000_000,
             },
             label: {
-              show: false,
+              show: labelVisibilityProperty,
               text: satellite.name,
               font: "500 10px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
               fillColor: SATELLITE_LABEL_FILL,
@@ -322,6 +325,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
             refs.entityById.delete(entityId);
             refs.satelliteByEntityId.delete(entityId);
             refs.positionByEntityId.delete(entityId);
+            refs.labelVisibilityByEntityId.delete(entityId);
             refs.positionCacheByEntityId.delete(entityId);
           }
         });

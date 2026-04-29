@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 import { useWorldStore } from "@/store/useWorldStore";
 
@@ -24,8 +25,12 @@ function formatUtcTimestamp(date: Date): string {
 
 export function HudOverlay() {
   const [utcTime, setUtcTime] = useState("---- -- -- --:--:-- UTC");
-  const hudEnabled = useWorldStore((state) => state.activeLayers.hud);
-  const globe = useWorldStore((state) => state.globe);
+  const { hudEnabled, globe } = useWorldStore(
+    useShallow((state) => ({
+      hudEnabled: state.activeLayers.hud,
+      globe: state.globe,
+    })),
+  );
 
   useEffect(() => {
     const updateUtcTime = () => setUtcTime(formatUtcTimestamp(new Date()));

@@ -1,5 +1,7 @@
 "use client";
 
+import { useShallow } from "zustand/react/shallow";
+
 import { useWorldStore } from "@/store/useWorldStore";
 
 const placeholderFields = [
@@ -31,9 +33,13 @@ const satelliteFieldOrder = [
 ] as const;
 
 export function InspectorPanel() {
-  const selectedEntity = useWorldStore((state) => state.selectedEntity);
-  const panelOpen = useWorldStore((state) => state.panels.right);
-  const setPanelOpen = useWorldStore((state) => state.setPanelOpen);
+  const { selectedEntity, panelOpen, setPanelOpen } = useWorldStore(
+    useShallow((state) => ({
+      selectedEntity: state.selectedEntity,
+      panelOpen: state.panels.right,
+      setPanelOpen: state.setPanelOpen,
+    })),
+  );
 
   if (!panelOpen) {
     return (

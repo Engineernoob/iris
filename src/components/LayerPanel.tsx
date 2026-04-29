@@ -1,5 +1,7 @@
 "use client";
 
+import { useShallow } from "zustand/react/shallow";
+
 import type { LayerId } from "@/store/useWorldStore";
 import { useWorldStore } from "@/store/useWorldStore";
 
@@ -12,10 +14,14 @@ const layers: Array<{ id: LayerId; label: string; detail: string }> = [
 ];
 
 export function LayerPanel() {
-  const activeLayers = useWorldStore((state) => state.activeLayers);
-  const toggleLayer = useWorldStore((state) => state.toggleLayer);
-  const panelOpen = useWorldStore((state) => state.panels.left);
-  const setPanelOpen = useWorldStore((state) => state.setPanelOpen);
+  const { activeLayers, toggleLayer, panelOpen, setPanelOpen } = useWorldStore(
+    useShallow((state) => ({
+      activeLayers: state.activeLayers,
+      toggleLayer: state.toggleLayer,
+      panelOpen: state.panels.left,
+      setPanelOpen: state.setPanelOpen,
+    })),
+  );
 
   if (!panelOpen) {
     return (

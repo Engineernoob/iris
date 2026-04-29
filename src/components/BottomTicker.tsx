@@ -1,5 +1,7 @@
 "use client";
 
+import { useShallow } from "zustand/react/shallow";
+
 import { useWorldStore } from "@/store/useWorldStore";
 
 function formatAltitude(meters: number): string {
@@ -11,17 +13,27 @@ function formatAltitude(meters: number): string {
 }
 
 export function BottomTicker() {
-  const aircraftLayerActive = useWorldStore((state) => state.activeLayers.aircraft);
-  const satellitesLayerActive = useWorldStore((state) => state.activeLayers.satellites);
-  const feeds = useWorldStore((state) => state.feeds);
-  const cameraHeightMeters = useWorldStore((state) => state.globe.cameraHeightMeters);
-  const selectedEntity = useWorldStore((state) => state.selectedEntity);
+  const {
+    aircraftLayerActive,
+    satellitesLayerActive,
+    feeds,
+    cameraHeightMeters,
+    selectedEntityName,
+  } = useWorldStore(
+    useShallow((state) => ({
+      aircraftLayerActive: state.activeLayers.aircraft,
+      satellitesLayerActive: state.activeLayers.satellites,
+      feeds: state.feeds,
+      cameraHeightMeters: state.globe.cameraHeightMeters,
+      selectedEntityName: state.selectedEntity?.name ?? null,
+    })),
+  );
   const visibleTickerItems = [
     aircraftLayerActive ? `${feeds.aircraft.count} aircraft tracked` : "aircraft layer standby",
     satellitesLayerActive ? `${feeds.satellites.count} satellites tracked` : "satellite layer standby",
     feeds.aircraft.online || feeds.satellites.online ? "feed synced" : "feed acquiring",
     `camera altitude ${formatAltitude(cameraHeightMeters)}`,
-    `selected ${selectedEntity?.name ?? "none"}`,
+    `selected ${selectedEntityName ?? "none"}`,
   ];
 
   return (

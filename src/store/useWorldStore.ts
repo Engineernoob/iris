@@ -107,20 +107,43 @@ export const useWorldStore = create<WorldState>((set) => ({
       },
     })),
   updateGlobeSettings: (settings) =>
-    set((state) => ({
-      globe: {
+    set((state) => {
+      const nextGlobe = {
         ...state.globe,
         ...settings,
-      },
-    })),
+      };
+
+      if (
+        nextGlobe.cameraHeightMeters === state.globe.cameraHeightMeters &&
+        nextGlobe.zoomLevel === state.globe.zoomLevel &&
+        nextGlobe.coordinates === state.globe.coordinates
+      ) {
+        return state;
+      }
+
+      return { globe: nextGlobe };
+    }),
   updateFeedStatus: (feed, status) =>
-    set((state) => ({
-      feeds: {
-        ...state.feeds,
-        [feed]: {
-          ...state.feeds[feed],
-          ...status,
+    set((state) => {
+      const nextFeed = {
+        ...state.feeds[feed],
+        ...status,
+      };
+
+      if (
+        nextFeed.online === state.feeds[feed].online &&
+        nextFeed.count === state.feeds[feed].count &&
+        nextFeed.latencyMs === state.feeds[feed].latencyMs &&
+        nextFeed.updatedAt === state.feeds[feed].updatedAt
+      ) {
+        return state;
+      }
+
+      return {
+        feeds: {
+          ...state.feeds,
+          [feed]: nextFeed,
         },
-      },
-    })),
+      };
+    }),
 }));
