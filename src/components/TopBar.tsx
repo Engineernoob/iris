@@ -51,8 +51,8 @@ function TopBar() {
           </div>
         </div>
         <div className="mx-auto hidden h-8 flex-1 items-center rounded-lg bg-white/[0.03] px-3 ring-1 ring-white/[0.05] md:flex">
-          <svg className="mr-2 size-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg className="mr-2 size-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             className="w-full bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600"

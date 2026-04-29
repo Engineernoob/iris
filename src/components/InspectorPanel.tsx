@@ -49,8 +49,8 @@ function InspectorPanel() {
         className="absolute right-4 top-20 z-20 flex h-10 items-center gap-2 rounded-lg bg-slate-950/70 px-3 text-[0.65rem] font-medium uppercase tracking-wider text-slate-400 transition-all hover:bg-slate-900/80 hover:text-slate-200 active:scale-[0.97]"
         onClick={() => setPanelOpen("right", true)}
       >
-        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         Inspector
       </button>
@@ -69,8 +69,8 @@ function InspectorPanel() {
           aria-label="Collapse inspector panel"
           onClick={() => setPanelOpen("right", false)}
         >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -128,8 +128,8 @@ function InspectorPanel() {
           <div>
             <div className="mb-3 flex items-center gap-3 border-b border-white/[0.05] pb-3">
               <div className="grid size-10 place-items-center rounded-lg bg-slate-900/80 ring-1 ring-white/[0.08]">
-                <svg className="size-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg className="size-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               <div>
