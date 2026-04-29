@@ -51,33 +51,33 @@ function HudOverlay() {
         "E",
         "W",
       )}`
-    : "Acquiring center";
+    : "Acquiring...";
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 text-slate-200">
-      <div className="absolute left-6 top-20 h-10 w-10 border-l border-t border-white/15" />
-      <div className="absolute right-6 top-20 h-10 w-10 border-r border-t border-white/15" />
-      <div className="absolute bottom-16 left-6 h-10 w-10 border-b border-l border-white/15" />
-      <div className="absolute bottom-16 right-6 h-10 w-10 border-b border-r border-white/15" />
-      <div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 opacity-70">
-        <div className="absolute left-1/2 top-2 h-5 w-px -translate-x-1/2 bg-cyan-100/35" />
-        <div className="absolute bottom-2 left-1/2 h-5 w-px -translate-x-1/2 bg-cyan-100/35" />
-        <div className="absolute left-2 top-1/2 h-px w-5 -translate-y-1/2 bg-cyan-100/35" />
-        <div className="absolute right-2 top-1/2 h-px w-5 -translate-y-1/2 bg-cyan-100/35" />
-        <div className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-1 ring-cyan-100/35" />
+    <div className="pointer-events-none absolute inset-0 z-10">
+      <div className="absolute left-6 top-20 h-8 w-8 border-l-2 border-t-2 border-cyan-400/20" />
+      <div className="absolute right-6 top-20 h-8 w-8 border-r-2 border-t-2 border-cyan-400/20" />
+      <div className="absolute bottom-16 left-6 h-8 w-8 border-b-2 border-l-2 border-cyan-400/20" />
+      <div className="absolute bottom-16 right-6 h-8 w-8 border-b-2 border-r-2 border-cyan-400/20" />
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60">
+        <div className="absolute left-1/2 top-0 h-4 w-px -translate-x-1/2 bg-cyan-400/30" />
+        <div className="absolute bottom-0 left-1/2 h-4 w-px -translate-x-1/2 bg-cyan-400/30" />
+        <div className="absolute left-0 top-1/2 h-px w-4 -translate-y-1/2 bg-cyan-400/30" />
+        <div className="absolute right-0 top-1/2 h-px w-4 -translate-y-1/2 bg-cyan-400/30" />
+        <div className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/40" />
       </div>
-      <div className="absolute bottom-16 left-1/2 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap justify-center gap-2">
-        <div className="rounded-full bg-slate-950/42 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-slate-300 shadow-[0_0_30px_rgba(14,165,233,0.06)] ring-1 ring-white/[0.07] backdrop-blur-xl">
+      <div className="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-2">
+        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md">
           {coordinateText}
         </div>
-        <div className="rounded-full bg-slate-950/42 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-slate-300 shadow-[0_0_30px_rgba(14,165,233,0.06)] ring-1 ring-white/[0.07] backdrop-blur-xl">
-          Zoom {globe.zoomLevel.toFixed(1)}
+        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md">
+          Zoom: {globe.zoomLevel.toFixed(1)}
         </div>
-        <div className="rounded-full bg-slate-950/42 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-slate-300 shadow-[0_0_30px_rgba(14,165,233,0.06)] ring-1 ring-white/[0.07] backdrop-blur-xl">
-          Alt {formatAltitude(globe.cameraHeightMeters)}
+        <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md">
+          Alt: {formatAltitude(globe.cameraHeightMeters)}
         </div>
       </div>
-      <div className="absolute right-6 top-20 rounded-full bg-slate-950/42 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.12em] text-slate-300 ring-1 ring-white/[0.07] backdrop-blur-xl">
+      <div className="absolute right-6 top-20 rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md">
         {utcTime}
       </div>
     </div>

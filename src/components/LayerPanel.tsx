@@ -28,33 +28,37 @@ function LayerPanel() {
     return (
       <button
         type="button"
-        className="absolute left-4 top-20 z-20 min-h-10 rounded-xl bg-slate-950/55 px-3 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-slate-200 shadow-[0_0_34px_rgba(14,165,233,0.08)] ring-1 ring-white/[0.08] backdrop-blur-xl transition-colors hover:bg-slate-900/70"
+        className="absolute left-4 top-20 z-20 flex h-10 items-center gap-2 rounded-lg bg-slate-950/70 px-3 text-[0.65rem] font-medium uppercase tracking-wider text-slate-400 transition-all hover:bg-slate-900/80 hover:text-slate-200 active:scale-[0.97]"
         onClick={() => setPanelOpen("left", true)}
       >
+        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
         Layers
       </button>
     );
   }
 
   return (
-    <aside className="absolute left-4 top-20 z-20 w-[min(18rem,calc(100vw-2rem))] rounded-2xl bg-slate-950/48 text-slate-100 shadow-[0_0_40px_rgba(14,165,233,0.07),0_20px_70px_rgba(0,0,0,0.28)] ring-1 ring-white/[0.08] backdrop-blur-2xl">
-      <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5">
+    <aside className="absolute left-4 top-20 z-20 w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-xl bg-slate-950/70 text-slate-100 shadow-xl ring-1 ring-white/[0.06] backdrop-blur-xl">
+      <div className="flex items-center justify-between border-b border-white/[0.05] px-4 py-3">
         <div>
-          <p className="text-[0.6rem] font-medium uppercase tracking-[0.22em] text-slate-500">
-            Operational Layers
+          <p className="text-[0.6rem] font-medium uppercase tracking-widest text-slate-500">
+            Layers
           </p>
-          <h2 className="mt-1 text-xs font-medium text-slate-200">Mission visibility</h2>
         </div>
         <button
           type="button"
-          className="grid size-10 place-items-center rounded-xl text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-200 active:scale-[0.96]"
+          className="grid size-8 place-items-center rounded-md text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-300 active:scale-[0.95]"
           aria-label="Collapse layer panel"
           onClick={() => setPanelOpen("left", false)}
         >
-          -
+          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
-      <div className="px-2 pb-2.5">
+      <div className="p-2">
         {layers.map((layer) => {
           const active = activeLayers[layer.id];
 
@@ -62,32 +66,32 @@ function LayerPanel() {
             <button
               key={layer.id}
               type="button"
-              className="group grid min-h-12 w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-white/[0.045] active:scale-[0.99]"
+              className="group grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-lg px-2.5 py-2.5 text-left transition-all hover:bg-white/[0.04] active:scale-[0.98]"
               onClick={() => toggleLayer(layer.id)}
               aria-pressed={active}
             >
               <span
-                className={`size-1.5 rounded-full ${
-                  active ? "bg-emerald-300/80 shadow-[0_0_12px_rgba(110,231,183,0.35)]" : "bg-slate-600/70"
+                className={`size-2 rounded-full transition-all ${
+                  active ? "bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]" : "bg-slate-600/70"
                 }`}
               />
               <span className="min-w-0">
-                <span className="block truncate text-[0.78rem] font-medium text-slate-100">{layer.label}</span>
-                <span className="mt-0.5 block truncate text-[0.66rem] text-slate-500">
+                <span className="block truncate text-sm font-medium text-slate-200">{layer.label}</span>
+                <span className="mt-0.5 block truncate text-[0.65rem] tracking-wide text-slate-500">
                   {layer.detail}
                 </span>
               </span>
-              <span
-                className={`h-5 w-9 rounded-full p-0.5 ring-1 transition-colors ${
-                  active ? "bg-cyan-300/15 ring-cyan-200/20" : "bg-white/[0.04] ring-white/[0.08]"
+              <div
+                className={`h-6 w-11 rounded-full p-0.5 transition-colors ${
+                  active ? "bg-cyan-400/20" : "bg-white/[0.03]"
                 }`}
               >
-                <span
-                  className={`block size-4 rounded-full transition-transform ${
-                    active ? "translate-x-4 bg-cyan-100/90" : "translate-x-0 bg-slate-500/80"
+                <div
+                  className={`size-5 rounded-full shadow-sm transition-all ${
+                    active ? "translate-x-5 bg-cyan-400" : "translate-x-0 bg-slate-500"
                   }`}
                 />
-              </span>
+              </div>
             </button>
           );
         })}
