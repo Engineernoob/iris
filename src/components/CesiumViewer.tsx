@@ -7,6 +7,7 @@ import { useAircraftLayer } from "@/hooks/useAircraftLayer";
 import { useAutoRotate } from "@/hooks/useAutoRotate";
 import { useCameraTelemetry } from "@/hooks/useCameraTelemetry";
 import { useCesiumBase } from "@/hooks/useCesiumBase";
+import { useEntityHover } from "@/hooks/useEntityHover";
 import { useGdeltLayer } from "@/hooks/useGdeltLayer";
 import { useSatelliteLayer } from "@/hooks/useSatelliteLayer";
 
@@ -19,6 +20,7 @@ export default function CesiumViewer() {
   useGdeltLayer(viewerRef, ready);
   useCameraTelemetry(viewerRef, ready);
   useAutoRotate(viewerRef, ready);
+  useEntityHover(viewerRef, ready);
 
   return <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-black" />;
 }

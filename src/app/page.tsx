@@ -19,7 +19,7 @@ const LayerPanel = dynamic(() => import("@/components/LayerPanel"), {
   ssr: false,
 });
 
-const InspectorPanel = dynamic(() => import("@/components/InspectorPanel"), {
+const EntityTooltip = dynamic(() => import("@/components/EntityTooltip"), {
   ssr: false,
 });
 
@@ -34,7 +34,7 @@ export default function Home() {
       <HudOverlay />
       <TopBar />
       <LayerPanel />
-      <InspectorPanel />
+      <EntityTooltip />
       <BottomTicker />
     </main>
   );

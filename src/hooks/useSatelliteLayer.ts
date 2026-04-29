@@ -38,6 +38,7 @@ import {
   propagateSatellitePosition,
 } from "@/lib/satellitePropagation";
 import { useWorldStore } from "@/store/useWorldStore";
+import { registerEntityLookup, unregisterEntityLookup } from "./useEntityHover";
 
 const SATELLITE_PULSE_INTERVAL_MS = 1000 / 4;
 
@@ -147,6 +148,17 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
     }
 
     const refs = refsRef.current;
+
+    registerEntityLookup("satellite:", (cesiumId: string) => {
+      const trackedSatellite = refs.satelliteByEntityId.get(cesiumId);
+      if (!trackedSatellite) return null;
+      return {
+        id: trackedSatellite.satellite.noradId,
+        name: trackedSatellite.satellite.name,
+        kind: "satellite" as const,
+        metadata: toSatelliteEntityMetadata(trackedSatellite.satellite, trackedSatellite.position),
+      };
+    });
 
     const removeSatelliteEntities = () => {
       refs.entityIds.forEach((entityId) => {
@@ -415,6 +427,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
       removeMoveEnd();
       unsubscribeSelection();
       clickHandler.destroy();
+      unregisterEntityLookup("satellite:");
       removeSatelliteEntities();
     };
   }, [active, ready, viewerRef]);

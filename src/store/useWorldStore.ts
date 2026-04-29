@@ -11,6 +11,8 @@ export type SelectedEntity = {
   metadata?: Record<string, string | number | boolean | null>;
 } | null;
 
+export type HoveredEntity = SelectedEntity;
+
 type Coordinates = {
   latitude: number;
   longitude: number;
@@ -39,6 +41,8 @@ type FeedStatus = {
 type WorldState = {
   activeLayers: Record<LayerId, boolean>;
   selectedEntity: SelectedEntity;
+  hoveredEntity: HoveredEntity;
+  hoverPosition: { x: number; y: number } | null;
   panels: {
     left: boolean;
     right: boolean;
@@ -48,6 +52,7 @@ type WorldState = {
   toggleLayer: (layer: LayerId) => void;
   setLayerActive: (layer: LayerId, active: boolean) => void;
   setSelectedEntity: (entity: SelectedEntity) => void;
+  setHoveredEntity: (entity: HoveredEntity, position: { x: number; y: number } | null) => void;
   setPanelOpen: (panel: keyof WorldState["panels"], open: boolean) => void;
   updateGlobeSettings: (settings: Partial<GlobeSettings>) => void;
   updateFeedStatus: (feed: keyof FeedStatus, status: Partial<FeedChannelStatus>) => void;
@@ -63,6 +68,8 @@ export const useWorldStore = create<WorldState>((set) => ({
     hud: true,
   },
   selectedEntity: null,
+  hoveredEntity: null,
+  hoverPosition: null,
   panels: {
     left: true,
     right: true,
@@ -107,6 +114,8 @@ export const useWorldStore = create<WorldState>((set) => ({
       },
     })),
   setSelectedEntity: (entity) => set({ selectedEntity: entity }),
+  setHoveredEntity: (entity, position) =>
+    set({ hoveredEntity: entity, hoverPosition: position }),
   setPanelOpen: (panel, open) =>
     set((state) => ({
       panels: {

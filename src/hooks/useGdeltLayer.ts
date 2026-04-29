@@ -18,6 +18,7 @@ import {
 import type { GdeltEventWithId } from "@/lib/gdelt";
 import { fetchGdeltEvents, getEventColor, getEventLabel } from "@/lib/gdelt";
 import { useWorldStore } from "@/store/useWorldStore";
+import { registerEntityLookup, unregisterEntityLookup } from "./useEntityHover";
 
 const GDELT_INTERVAL_MS = 60_000; // 1 minute
 const MAX_GDELT_EVENTS = 50;
@@ -44,6 +45,26 @@ export function useGdeltLayer(viewerRef: RefObject<Viewer | null>, ready: boolea
     }
 
     const refs = refsRef.current;
+
+    registerEntityLookup("gdelt:", (cesiumId: string) => {
+      const event = refs.eventByEntityId.get(cesiumId);
+      if (!event) return null;
+      return {
+        id: event.id,
+        name: getEventLabel(event),
+        kind: "gdelt" as const,
+        metadata: {
+          "Actor 1": event.actor1Name,
+          "Actor 2": event.actor2Name,
+          "Event Code": event.eventCode,
+          "Goldstein Scale": event.goldstein.toFixed(2),
+          "Tone": event.avgTone.toFixed(2),
+          "Articles": event.numArticles,
+          "Latitude": event.lat.toFixed(4),
+          "Longitude": event.lon.toFixed(4),
+        },
+      };
+    });
 
     const removeGdeltEntities = () => {
       refs.entityIds.forEach((entityId) => {
@@ -202,6 +223,7 @@ export function useGdeltLayer(viewerRef: RefObject<Viewer | null>, ready: boolea
       window.clearInterval(interval);
       clickHandler.destroy();
       unsubscribeSelection();
+      unregisterEntityLookup("gdelt:");
       removeGdeltEntities();
     };
   }, [active, ready, viewerRef]);

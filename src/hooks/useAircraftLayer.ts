@@ -40,6 +40,7 @@ import { fetchWithBackoff, warnFeedFailureOnce } from "@/lib/feedRetry";
 import type { AircraftState } from "@/lib/opensky";
 import { fetchAircraftStates } from "@/lib/opensky";
 import { useWorldStore } from "@/store/useWorldStore";
+import { registerEntityLookup, unregisterEntityLookup } from "./useEntityHover";
 
 const AIRCRAFT_ANIMATION_INTERVAL_MS = 1000 / 10;
 const AIRCRAFT_TRAIL_MAX_POINTS = 24;
@@ -122,6 +123,17 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
     }
 
     const refs = refsRef.current;
+
+    registerEntityLookup("aircraft:", (cesiumId: string) => {
+      const aircraft = refs.aircraftByEntityId.get(cesiumId);
+      if (!aircraft) return null;
+      return {
+        id: aircraft.icao24.toUpperCase(),
+        name: formatAircraftName(aircraft),
+        kind: "aircraft" as const,
+        metadata: toAircraftEntityMetadata(aircraft),
+      };
+    });
 
     const removeAircraftEntities = () => {
       refs.entityIds.forEach((entityId) => {
@@ -443,6 +455,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
       removeMoveEnd();
       unsubscribeSelection();
       clickHandler.destroy();
+      unregisterEntityLookup("aircraft:");
       removeAircraftEntities();
     };
   }, [active, ready, viewerRef]);
