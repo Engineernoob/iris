@@ -33,6 +33,7 @@ type FeedChannelStatus = {
 type FeedStatus = {
   aircraft: FeedChannelStatus;
   satellites: FeedChannelStatus;
+  gdelt: FeedChannelStatus;
 };
 
 type WorldState = {
@@ -71,26 +72,26 @@ export const useWorldStore = create<WorldState>((set) => ({
     zoomLevel: 1,
     coordinates: null,
   },
-    feeds: {
-      aircraft: {
-        online: false,
-        count: 0,
-        latencyMs: null,
-        updatedAt: null,
-      },
-      satellites: {
-        online: false,
-        count: 0,
-        latencyMs: null,
-        updatedAt: null,
-      },
-      gdelt: {
-        online: false,
-        count: 0,
-        latencyMs: null,
-        updatedAt: null,
-      },
+  feeds: {
+    aircraft: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
     },
+    satellites: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
+    },
+    gdelt: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
+    },
+  },
   toggleLayer: (layer) =>
     set((state) => ({
       activeLayers: {
@@ -155,4 +156,3 @@ export const useWorldStore = create<WorldState>((set) => ({
     }),
   }),
 });
-}));
