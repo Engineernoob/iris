@@ -33,6 +33,9 @@ function parseGdeltCsv(csvText: string): GdeltEvent[] {
 
   return lines.slice(1).map((line) => {
     const parts = line.split("\t");
+    const lat = parseFloat(parts[56] || "0");
+    const lon = parseFloat(parts[57] || "0");
+    
     return {
       id: parts[0] || "",
       date: parts[1] || "",
@@ -43,15 +46,15 @@ function parseGdeltCsv(csvText: string): GdeltEvent[] {
       eventRootCode: parts[28] || "",
       quadrant: parseInt(parts[30] || "0", 10),
       goldstein: parseFloat(parts[31] || "0"),
-      lat: parseFloat(parts[49] || "0"),
-      lon: parseFloat(parts[50] || "0"),
+      lat: isNaN(lat) ? 0 : lat,
+      lon: isNaN(lon) ? 0 : lon,
       numMentions: parseInt(parts[32] || "0", 10),
       numSources: parseInt(parts[33] || "0", 10),
       numArticles: parseInt(parts[34] || "0", 10),
       avgTone: parseFloat(parts[35] || "0"),
-      url: parts[57] || "",
+      url: parts[60] || "",
     };
-  }).filter((event) => event.lat !== 0 && event.lon !== 0);
+  }).filter((event) => event.lat !== 0 && event.lon !== 0 && !isNaN(event.lat) && !isNaN(event.lon));
 }
 
 export function getEventColor(eventBaseCode: string): string {
