@@ -10,6 +10,7 @@ const layers: Array<{ id: LayerId; label: string; detail: string }> = [
   { id: "mapboxSatellite", label: "Mapbox Satellite", detail: "Satellite streets base layer" },
   { id: "aircraft", label: "Aircraft", detail: "ADS-B traffic overlay" },
   { id: "satellites", label: "Satellites", detail: "Orbital catalog tracks" },
+  { id: "gdelt", label: "GDELT Events", detail: "Global conflict & events" },
   { id: "terrain", label: "Terrain", detail: "Elevation occlusion model" },
   { id: "hud", label: "HUD", detail: "Mission readout overlay" },
 ];

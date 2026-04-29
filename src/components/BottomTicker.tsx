@@ -17,6 +17,7 @@ function BottomTicker() {
   const {
     aircraftLayerActive,
     satellitesLayerActive,
+    gdeltLayerActive,
     feeds,
     cameraHeightMeters,
     selectedEntityName,
@@ -24,6 +25,7 @@ function BottomTicker() {
     useShallow((state) => ({
       aircraftLayerActive: state.activeLayers.aircraft,
       satellitesLayerActive: state.activeLayers.satellites,
+      gdeltLayerActive: state.activeLayers.gdelt,
       feeds: state.feeds,
       cameraHeightMeters: state.globe.cameraHeightMeters,
       selectedEntityName: state.selectedEntity?.name ?? null,
@@ -32,6 +34,7 @@ function BottomTicker() {
   const visibleTickerItems = [
     aircraftLayerActive ? `${feeds.aircraft.count} aircraft` : null,
     satellitesLayerActive ? `${feeds.satellites.count} satellites` : null,
+    gdeltLayerActive ? `${feeds.gdelt?.count ?? 0} events` : null,
     `Alt: ${formatAltitude(cameraHeightMeters)}`,
     selectedEntityName ? `Selected: ${selectedEntityName}` : null,
   ].filter(Boolean);
@@ -56,6 +59,9 @@ function BottomTicker() {
         <div className="flex items-center gap-1.5">
           <span className={`size-1.5 rounded-full ${feeds.aircraft.online ? "bg-cyan-400" : "bg-slate-600"}`} />
           <span className={`size-1.5 rounded-full ${feeds.satellites.online ? "bg-emerald-400" : "bg-slate-600"}`} />
+          {feeds.gdelt?.online !== undefined && (
+            <span className={`size-1.5 rounded-full ${feeds.gdelt.online ? "bg-violet-400" : "bg-slate-600"}`} />
+          )}
         </div>
       </div>
     </footer>

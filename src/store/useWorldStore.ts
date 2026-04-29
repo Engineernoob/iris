@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type LayerId = "mapboxSatellite" | "aircraft" | "satellites" | "terrain" | "hud";
+export type LayerId = "mapboxSatellite" | "aircraft" | "satellites" | "gdelt" | "terrain" | "hud";
 
 const DEFAULT_CAMERA_HEIGHT_METERS = 14_500_000;
 
@@ -57,6 +57,7 @@ export const useWorldStore = create<WorldState>((set) => ({
     mapboxSatellite: true,
     aircraft: true,
     satellites: true,
+    gdelt: false,
     terrain: false,
     hud: true,
   },
@@ -70,20 +71,26 @@ export const useWorldStore = create<WorldState>((set) => ({
     zoomLevel: 1,
     coordinates: null,
   },
-  feeds: {
-    aircraft: {
-      online: false,
-      count: 0,
-      latencyMs: null,
-      updatedAt: null,
+    feeds: {
+      aircraft: {
+        online: false,
+        count: 0,
+        latencyMs: null,
+        updatedAt: null,
+      },
+      satellites: {
+        online: false,
+        count: 0,
+        latencyMs: null,
+        updatedAt: null,
+      },
+      gdelt: {
+        online: false,
+        count: 0,
+        latencyMs: null,
+        updatedAt: null,
+      },
     },
-    satellites: {
-      online: false,
-      count: 0,
-      latencyMs: null,
-      updatedAt: null,
-    },
-  },
   toggleLayer: (layer) =>
     set((state) => ({
       activeLayers: {
@@ -146,4 +153,5 @@ export const useWorldStore = create<WorldState>((set) => ({
         },
       };
     }),
+}));
 }));

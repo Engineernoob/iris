@@ -33,6 +33,17 @@ const satelliteFieldOrder = [
   ["source", "Source"],
 ] as const;
 
+const gdeltFieldOrder = [
+  ["Actor 1", "Actor 1"],
+  ["Actor 2", "Actor 2"],
+  ["Event Code", "Event Code"],
+  ["Goldstein Scale", "Goldstein Scale"],
+  ["Tone", "Avg Tone"],
+  ["Articles", "Articles"],
+  ["Latitude", "Latitude"],
+  ["Longitude", "Longitude"],
+] as const;
+
 function InspectorPanel() {
   const { selectedEntity, panelOpen, setPanelOpen } = useWorldStore(
     useShallow((state) => ({
@@ -97,6 +108,17 @@ function InspectorPanel() {
                 ))
               ) : selectedEntity.metadata && selectedEntity.kind === "satellite" ? (
                 satelliteFieldOrder.map(([key, label]) => (
+                    <div key={key} className="flex items-start justify-between gap-4">
+                      <dt className="text-[0.65rem] uppercase tracking-wider text-slate-500">
+                        {label}
+                      </dt>
+                      <dd className="max-w-44 text-right font-mono text-[0.7rem] tabular-nums text-slate-300">
+                        {String(selectedEntity.metadata?.[key] ?? "--")}
+                      </dd>
+                    </div>
+                  ))
+              ) : selectedEntity.metadata && selectedEntity.kind === "gdelt" ? (
+                gdeltFieldOrder.map(([key, label]) => (
                     <div key={key} className="flex items-start justify-between gap-4">
                       <dt className="text-[0.65rem] uppercase tracking-wider text-slate-500">
                         {label}

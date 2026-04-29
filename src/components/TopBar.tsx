@@ -73,6 +73,12 @@ function TopBar() {
               {feeds.satellites.count} Satellites
             </span>
           </span>
+          <span className="flex items-center gap-1.5">
+            <span className={`size-1.5 rounded-full ${feeds.gdelt?.online ? "bg-violet-400" : "bg-slate-600"}`} />
+            <span className={feeds.gdelt?.online ? "text-violet-100/90" : "text-slate-500"}>
+              {feeds.gdelt?.count ?? 0} Events
+            </span>
+          </span>
           <span className="text-slate-500">{utcTime} UTC</span>
         </div>
       </div>
