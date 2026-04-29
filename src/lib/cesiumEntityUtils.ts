@@ -53,11 +53,12 @@ export function getAircraftIconDataUrl(state: AircraftVisualState): string {
 
   const fill = getAircraftVisualColor(state);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
-    <path d="M18 4 L32 16 L25 16 L25 32 L11 32 L11 16 L4 16 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1.2"/>
-    <path d="M11 32 L11 35 L25 35 L25 32" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
-    <path d="M4 18 L11 11 L11 25 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
-    <path d="M32 18 L25 11 L25 25 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
-    <line x1="18" y1="8" x2="18" y2="32" stroke="#020617" stroke-opacity=".3" stroke-width="1"/>
+    <path d="M18 2 L22 8 L22 28 L18 32 L14 28 L14 8 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1.2"/>
+    <path d="M14 10 L4 18 L14 16 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
+    <path d="M22 10 L32 18 L22 16 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
+    <path d="M14 28 L8 32 L14 30 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
+    <path d="M22 28 L28 32 L22 30 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
+    <line x1="18" y1="2" x2="18" y2="32" stroke="#020617" stroke-opacity=".25" stroke-width="0.8"/>
   </svg>`;
 
   const dataUrl = `data:image/svg+xml,${encodeURIComponent(svg)}`;

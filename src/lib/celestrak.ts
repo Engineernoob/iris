@@ -20,12 +20,18 @@ export function parseTleCatalog(tleText: string, limit = INITIAL_SATELLITE_LIMIT
 
   const satellites: SatelliteTle[] = [];
 
-  for (let index = 0; index + 2 < lines.length && satellites.length < limit; index += 3) {
+  let startIndex = 0;
+  const firstLine = lines[0] || "";
+  if (!firstLine.startsWith("1 ") && !firstLine.startsWith("2 ") && firstLine.includes("GP data")) {
+    startIndex = 2;
+  }
+
+  for (let index = startIndex; index + 2 < lines.length && satellites.length < limit; index += 3) {
     const name = lines[index];
     const line1 = lines[index + 1];
     const line2 = lines[index + 2];
 
-    if (!line1.startsWith("1 ") || !line2.startsWith("2 ")) {
+    if (!line1?.startsWith("1 ") || !line2?.startsWith("2 ")) {
       continue;
     }
 
