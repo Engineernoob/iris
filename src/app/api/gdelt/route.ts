@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { unzip } from "unzipit";
 
 const GDELT_LATEST_URL = "http://data.gdeltproject.org/gdeltv2/lastupdate.txt";
 const CACHE_TTL_MS = 900_000; // 15 minutes
@@ -32,8 +33,8 @@ export async function GET() {
       throw new Error("No GDELT data URL found");
     }
 
-    const csvUrl = dataLine.split("export.CSV.zip:")[1]?.trim();
-    if (!csvUrl) {
+    const csvUrl = dataLine.split(" ").pop()?.trim();
+    if (!csvUrl || !csvUrl.startsWith("http")) {
       throw new Error("Invalid GDELT data URL");
     }
 
@@ -42,7 +43,15 @@ export async function GET() {
       throw new Error(`Failed to fetch GDELT CSV: ${csvResponse.status}`);
     }
 
-    const csvText = await csvResponse.text();
+    const zipBuffer = await csvResponse.arrayBuffer();
+    const { entries } = await unzip(zipBuffer);
+    
+    const csvEntry = Object.values(entries).find((e) => e.name.endsWith(".CSV"));
+    if (!csvEntry) {
+      throw new Error("No CSV file found in ZIP");
+    }
+    
+    const csvText = await csvEntry.text();
     cachedData = csvText;
     cachedAt = now;
 
