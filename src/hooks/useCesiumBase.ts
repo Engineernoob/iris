@@ -35,6 +35,23 @@ export function useCesiumBase(containerRef: RefObject<HTMLDivElement | null>) {
       mapboxImageryLayerRef.current = mapboxLayer;
     }
 
+    // Update store with initial camera position
+    const { Cartographic } = await import("cesium");
+    const cameraPosition = Cartographic.fromCartesian(
+      viewer.camera.positionWC,
+      viewer.scene.globe.ellipsoid
+    );
+    const { approximateZoomLevel } = await import("@/lib/cesiumConfig");
+    useWorldStore.getState().updateGlobeSettings({
+      cameraHeightMeters: cameraPosition.height,
+      zoomLevel: approximateZoomLevel(cameraPosition.height),
+      coordinates: {
+        latitude: Cartographic.toDegrees(cameraPosition.latitude),
+        longitude: Cartographic.toDegrees(cameraPosition.longitude),
+        altitudeMeters: cameraPosition.height,
+      },
+    });
+
     viewer.scene.requestRender();
     setReady(true);
 

@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export type LayerId = "mapboxSatellite" | "aircraft" | "satellites" | "gdelt" | "terrain" | "hud";
 
-const DEFAULT_CAMERA_HEIGHT_METERS = 14_500_000;
+const DEFAULT_CAMERA_HEIGHT_METERS = 5_000_000;
 
 export type SelectedEntity = {
   id: string;

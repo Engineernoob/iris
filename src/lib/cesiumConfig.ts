@@ -16,7 +16,7 @@ import {
 
 export const CESIUM_BASE_URL = "/cesium";
 export const TARGET_FRAME_RATE = 30;
-export const INITIAL_CAMERA_HEIGHT_METERS = 14_500_000;
+export const INITIAL_CAMERA_HEIGHT_METERS = 5_000_000;
 export const TELEMETRY_UPDATE_INTERVAL_MS = 500;
 export const AUTO_ROTATE_INTERVAL_MS = 1000 / TARGET_FRAME_RATE;
 export const IDLE_RESUME_DELAY_MS = 4_500;
@@ -122,10 +122,10 @@ export function configureViewer(container: HTMLDivElement): Viewer {
   }
 
   viewer.camera.setView({
-    destination: Cartesian3.fromDegrees(-52.5, 40.5, INITIAL_CAMERA_HEIGHT_METERS),
+    destination: Cartesian3.fromDegrees(0, 20, INITIAL_CAMERA_HEIGHT_METERS),
     orientation: {
-      heading: CesiumMath.toRadians(318),
-      pitch: CesiumMath.toRadians(-54),
+      heading: CesiumMath.toRadians(0),
+      pitch: CesiumMath.toRadians(-45),
       roll: 0,
     },
   });
