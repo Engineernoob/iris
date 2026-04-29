@@ -41,7 +41,7 @@ import type { AircraftState } from "@/lib/opensky";
 import { fetchAircraftStates } from "@/lib/opensky";
 import { useWorldStore } from "@/store/useWorldStore";
 
-const AIRCRAFT_ANIMATION_INTERVAL_MS = 1000 / 15;
+const AIRCRAFT_ANIMATION_INTERVAL_MS = 1000 / 10;
 const AIRCRAFT_TRAIL_MAX_POINTS = 24;
 const AIRCRAFT_TRAIL_SAMPLE_MS = 1_200;
 

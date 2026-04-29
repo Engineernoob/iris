@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { useWorldStore } from "@/store/useWorldStore";
@@ -12,7 +13,7 @@ function formatAltitude(meters: number): string {
   return `${Math.round(meters / 1_000)} km`;
 }
 
-export function BottomTicker() {
+function BottomTicker() {
   const {
     aircraftLayerActive,
     satellitesLayerActive,
@@ -64,3 +65,5 @@ export function BottomTicker() {
     </footer>
   );
 }
+
+export default memo(BottomTicker);

@@ -39,7 +39,7 @@ import {
 } from "@/lib/satellitePropagation";
 import { useWorldStore } from "@/store/useWorldStore";
 
-const SATELLITE_PULSE_INTERVAL_MS = 1000 / 6;
+const SATELLITE_PULSE_INTERVAL_MS = 1000 / 4;
 
 type TrackedSatellite = {
   satellite: PropagatedSatellite;

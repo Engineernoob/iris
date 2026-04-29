@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { useWorldStore } from "@/store/useWorldStore";
@@ -17,7 +17,7 @@ function formatFeedUpdatedAt(updatedAt: string | null): string {
   return `${new Date(updatedAt).toISOString().slice(11, 19)} UTC`;
 }
 
-export function TopBar() {
+function TopBar() {
   const [utcTime, setUtcTime] = useState("--:--:--");
   const feeds = useWorldStore(useShallow((state) => state.feeds));
   const latencyMs = Math.max(feeds.aircraft.latencyMs ?? 0, feeds.satellites.latencyMs ?? 0);
@@ -79,3 +79,5 @@ export function TopBar() {
     </header>
   );
 }
+
+export default memo(TopBar);

@@ -21,10 +21,10 @@ export const TELEMETRY_UPDATE_INTERVAL_MS = 500;
 export const AUTO_ROTATE_INTERVAL_MS = 1000 / TARGET_FRAME_RATE;
 export const IDLE_RESUME_DELAY_MS = 4_500;
 export const AUTO_ROTATE_RADIANS_PER_SECOND = CesiumMath.toRadians(0.28);
-export const AIRCRAFT_REFRESH_INTERVAL_MS = 20_000;
-export const SATELLITE_UPDATE_INTERVAL_MS = 8_000;
-export const MAX_RENDERED_AIRCRAFT = 150;
-export const MAX_RENDERED_SATELLITES = 50;
+export const AIRCRAFT_REFRESH_INTERVAL_MS = 30_000;
+export const SATELLITE_UPDATE_INTERVAL_MS = 15_000;
+export const MAX_RENDERED_AIRCRAFT = 80;
+export const MAX_RENDERED_SATELLITES = 30;
 export const AIRCRAFT_LABEL_HEIGHT_THRESHOLD = 1_250_000;
 export const SATELLITE_LABEL_HEIGHT_THRESHOLD = 2_200_000;
 export const SATELLITE_TRAIL_ENTITY_ID = "satellite:selected-trail";
@@ -81,8 +81,8 @@ export function configureViewer(container: HTMLDivElement): Viewer {
   cameraController.zoomFactor = 4.5;
 
   viewer.scene.backgroundColor = Color.fromCssColorString("#02040a");
-  viewer.scene.highDynamicRange = true;
-  viewer.scene.sunBloom = true;
+  viewer.scene.highDynamicRange = false;
+  viewer.scene.sunBloom = false;
   viewer.scene.light = new SunLight({
     color: Color.WHITE,
     intensity: 3.2,
@@ -107,15 +107,15 @@ export function configureViewer(container: HTMLDivElement): Viewer {
   globe.lightingFadeInDistance = 28_000_000;
   globe.nightFadeOutDistance = 1_500_000;
   globe.nightFadeInDistance = 18_000_000;
-  globe.maximumScreenSpaceError = 2.0;
-  globe.tileCacheSize = 512;
-  globe.preloadAncestors = true;
-  globe.preloadSiblings = true;
+  globe.maximumScreenSpaceError = 3.0;
+  globe.tileCacheSize = 256;
+  globe.preloadAncestors = false;
+  globe.preloadSiblings = false;
 
   const skyAtmosphere = viewer.scene.skyAtmosphere;
   if (skyAtmosphere) {
     skyAtmosphere.show = true;
-    skyAtmosphere.perFragmentAtmosphere = true;
+    skyAtmosphere.perFragmentAtmosphere = false;
     skyAtmosphere.atmosphereLightIntensity = 55.0;
     skyAtmosphere.saturationShift = -0.05;
     skyAtmosphere.brightnessShift = -0.04;

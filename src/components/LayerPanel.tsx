@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import type { LayerId } from "@/store/useWorldStore";
@@ -13,7 +14,7 @@ const layers: Array<{ id: LayerId; label: string; detail: string }> = [
   { id: "hud", label: "HUD", detail: "Mission readout overlay" },
 ];
 
-export function LayerPanel() {
+function LayerPanel() {
   const { activeLayers, toggleLayer, panelOpen, setPanelOpen } = useWorldStore(
     useShallow((state) => ({
       activeLayers: state.activeLayers,
@@ -94,3 +95,5 @@ export function LayerPanel() {
     </aside>
   );
 }
+
+export default memo(LayerPanel);

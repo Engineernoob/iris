@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { useWorldStore } from "@/store/useWorldStore";
@@ -32,7 +33,7 @@ const satelliteFieldOrder = [
   ["source", "Source"],
 ] as const;
 
-export function InspectorPanel() {
+function InspectorPanel() {
   const { selectedEntity, panelOpen, setPanelOpen } = useWorldStore(
     useShallow((state) => ({
       selectedEntity: state.selectedEntity,
@@ -148,3 +149,5 @@ export function InspectorPanel() {
     </aside>
   );
 }
+
+export default memo(InspectorPanel);

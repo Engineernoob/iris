@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { useWorldStore } from "@/store/useWorldStore";
@@ -23,7 +23,7 @@ function formatUtcTimestamp(date: Date): string {
   return `${date.toISOString().replace("T", " ").slice(0, 19)} UTC`;
 }
 
-export function HudOverlay() {
+function HudOverlay() {
   const [utcTime, setUtcTime] = useState("---- -- -- --:--:-- UTC");
   const { hudEnabled, globe } = useWorldStore(
     useShallow((state) => ({
@@ -83,3 +83,5 @@ export function HudOverlay() {
     </div>
   );
 }
+
+export default memo(HudOverlay);
