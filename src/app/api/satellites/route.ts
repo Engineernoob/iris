@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { parseTleCatalog } from "@/lib/celestrak";
 
 const CELESTRAK_ACTIVE_TLE_URL =
-  "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle";
+  "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle&ORDER=name";
 const SATELLITE_CACHE_TTL_MS = 3_600_000;
 const cacheHeaders = {
   "Cache-Control": "s-maxage=3600, stale-while-revalidate=3600",

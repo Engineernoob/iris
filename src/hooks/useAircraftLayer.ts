@@ -249,8 +249,9 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
 
             const existingEntity = viewer.entities.getById(entityId);
             if (existingEntity?.billboard) {
+              const currentHeading = aircraft.headingDegrees ?? 0;
               existingEntity.billboard.rotation = new ConstantProperty(
-                CesiumMath.toRadians(-(aircraft.headingDegrees ?? 0)),
+                CesiumMath.toRadians(-currentHeading),
               );
               if (refs.visualStateByEntityId.get(entityId) !== visualState) {
                 existingEntity.billboard.image = new ConstantProperty(icon);

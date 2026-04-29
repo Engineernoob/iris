@@ -134,6 +134,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
     positionCacheByEntityId: new Map(),
   });
   const satelliteCatalogRef = useRef<PropagatedSatellite[] | null>(null);
+  const fetchAttemptsRef = useRef(0);
   const movingRef = useRef(false);
   const requestInFlightRef = useRef(false);
   const warnedFailureRef = useRef(false);
@@ -174,13 +175,23 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
     let cancelled = false;
 
     const getSatelliteCatalog = async () => {
-      if (satelliteCatalogRef.current) {
+      if (satelliteCatalogRef.current && satelliteCatalogRef.current.length > 0) {
         return satelliteCatalogRef.current;
       }
 
+      fetchAttemptsRef.current += 1;
       const tles = await fetchWithBackoff(() =>
         fetchActiveSatelliteTles(MAX_RENDERED_SATELLITES),
       );
+
+      if (tles.length === 0 && fetchAttemptsRef.current < 3) {
+        useWorldStore.getState().updateFeedStatus("satellites", {
+          online: false,
+          count: 0,
+        });
+        return [];
+      }
+
       const satellites = tles
         .map(createPropagatedSatellite)
         .filter((satellite): satellite is PropagatedSatellite => satellite !== null)
