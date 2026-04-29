@@ -54,7 +54,7 @@ function parseGdeltCsv(csvText: string): GdeltEvent[] {
   }).filter((event) => event.lat !== 0 && event.lon !== 0);
 }
 
-function getEventColor(eventBaseCode: string): string {
+export function getEventColor(eventBaseCode: string): string {
   const code = eventBaseCode.toLowerCase();
   if (code.startsWith("1")) return "#3b82f6"; // Political
   if (code.startsWith("2")) return "#ef4444"; // Conflict
@@ -79,7 +79,7 @@ function getEventColor(eventBaseCode: string): string {
   return "#6b7280";
 }
 
-function getEventLabel(event: GdeltEvent): string {
+export function getEventLabel(event: GdeltEvent): string {
   const actor1 = event.actor1Name || "Unknown";
   const actor2 = event.actor2Name || "Unknown";
   return `${actor1} → ${actor2}`;

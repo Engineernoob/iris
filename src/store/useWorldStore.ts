@@ -7,7 +7,7 @@ const DEFAULT_CAMERA_HEIGHT_METERS = 14_500_000;
 export type SelectedEntity = {
   id: string;
   name: string;
-  kind: "aircraft" | "satellite" | "terrain" | "unknown";
+  kind: "aircraft" | "satellite" | "terrain" | "gdelt" | "unknown";
   metadata?: Record<string, string | number | boolean | null>;
 } | null;
 
@@ -153,5 +153,6 @@ export const useWorldStore = create<WorldState>((set) => ({
         },
       };
     }),
-  }));
+  }),
+});
 }));
