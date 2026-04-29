@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { useWorldStore } from "@/store/useWorldStore";
@@ -23,14 +23,19 @@ function formatUtcTimestamp(date: Date): string {
   return `${date.toISOString().replace("T", " ").slice(0, 19)} UTC`;
 }
 
+type HudPosition = { x: number; y: number };
+
 function HudOverlay() {
-  const [utcTime, setUtcTime] = useState("---- -- -- --:--:-- UTC");
+  const [utcTime, setUtcTime] = useState("---- -- -- :--:-- UTC");
   const { hudEnabled, globe } = useWorldStore(
     useShallow((state) => ({
       hudEnabled: state.activeLayers.hud,
       globe: state.globe,
     })),
   );
+  const [position, setPosition] = useState<HudPosition>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const updateUtcTime = () => setUtcTime(formatUtcTimestamp(new Date()));
@@ -53,8 +58,33 @@ function HudOverlay() {
       )}`
     : "Acquiring...";
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    dragOffset.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - dragOffset.current.x,
+      y: e.clientY - dragOffset.current.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   return (
-    <div className="pointer-events-none absolute inset-0 z-10">
+    <div
+      className="fixed inset-0 z-10 pointer-events-none"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
       <div className="absolute left-6 top-20 h-8 w-8 border-l-2 border-t-2 border-cyan-400/20" />
       <div className="absolute right-6 top-20 h-8 w-8 border-r-2 border-t-2 border-cyan-400/20" />
       <div className="absolute bottom-16 left-6 h-8 w-8 border-b-2 border-l-2 border-cyan-400/20" />
@@ -66,7 +96,11 @@ function HudOverlay() {
         <div className="absolute right-0 top-1/2 h-px w-4 -translate-y-1/2 bg-cyan-400/30" />
         <div className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/40" />
       </div>
-      <div className="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-2">
+      <div
+        className="absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-2 cursor-move pointer-events-auto"
+        style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+        onMouseDown={handleMouseDown}
+      >
         <div className="rounded-md bg-slate-950/60 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-wider text-slate-400 ring-1 ring-white/[0.05] backdrop-blur-md">
           {coordinateText}
         </div>
