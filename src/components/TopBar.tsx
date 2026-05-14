@@ -1,10 +1,6 @@
 "use client";
 
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-=======
 import { memo, useEffect, useState } from "react";
->>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
 import { useShallow } from "zustand/react/shallow";
 
 import { formatUtcClock } from "@/lib/format";
@@ -21,9 +17,13 @@ function formatFeedUpdatedAt(updatedAt: string | null): string {
 function TopBar() {
   const [utcTime, setUtcTime] = useState("--:--:--");
   const feeds = useWorldStore(useShallow((state) => state.feeds));
-  const latencyMs = Math.max(feeds.aircraft.latencyMs ?? 0, feeds.satellites.latencyMs ?? 0);
+  const latencyMs = Math.max(
+    feeds.aircraft.latencyMs ?? 0,
+    feeds.satellites.latencyMs ?? 0,
+    feeds.gdelt.latencyMs ?? 0,
+  );
   const updatedAt =
-    [feeds.aircraft.updatedAt, feeds.satellites.updatedAt]
+    [feeds.aircraft.updatedAt, feeds.satellites.updatedAt, feeds.gdelt.updatedAt]
       .filter((value): value is string => Boolean(value))
       .sort()
       .at(-1) ?? null;
@@ -39,7 +39,6 @@ function TopBar() {
 
   return (
     <header className="absolute inset-x-0 top-0 z-30 px-3 pt-3 text-slate-100 sm:px-5">
-<<<<<<< HEAD
       <div className="mx-auto flex min-h-12 max-w-[1520px] items-center gap-3 rounded-2xl bg-slate-950/50 px-3 shadow-[0_18px_80px_rgba(0,0,0,0.28),0_0_34px_rgba(14,165,233,0.05)] ring-1 ring-white/[0.09] backdrop-blur-2xl sm:px-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <div
@@ -68,44 +67,13 @@ function TopBar() {
           <span className="tabular-nums">UTC {utcTime}</span>
           <span className={feeds.aircraft.online ? "text-cyan-100/80" : "text-slate-500"}>
             AIR {feeds.aircraft.online ? "ONLINE" : "STANDBY"}
-=======
-      <div className="mx-auto flex min-h-12 max-w-[1520px] items-center gap-3 rounded-xl bg-slate-950/60 px-4 shadow-lg ring-1 ring-white/[0.06] backdrop-blur-xl">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="grid size-7 place-items-center rounded-md bg-cyan-500/10 text-[0.63rem] font-bold tracking-wider text-cyan-400 ring-1 ring-cyan-400/20">
-            I
-          </div>
-          <div className="flex min-w-0 items-baseline gap-2">
-            <h1 className="truncate text-sm font-bold tracking-widest text-white">IRIS</h1>
-            <span className="hidden text-[0.65rem] font-medium uppercase tracking-wider text-slate-500 sm:inline">
-              Spatial Intelligence
-            </span>
-          </div>
-        </div>
-        <div className="mx-auto hidden h-8 flex-1 items-center rounded-lg bg-white/[0.03] px-3 ring-1 ring-white/[0.05] md:flex">
-          <svg className="mr-2 size-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            className="w-full bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-600"
-            placeholder="Search assets, coordinates..."
-            aria-label="Search"
-          />
-        </div>
-        <div className="ml-auto hidden items-center gap-4 font-mono text-[0.65rem] uppercase tracking-wider text-slate-400 lg:flex">
-          <span className="flex items-center gap-1.5">
-            <span className={`size-1.5 rounded-full ${feeds.aircraft.online ? "bg-cyan-400" : "bg-slate-600"}`} />
-            <span className={feeds.aircraft.online ? "text-cyan-100/90" : "text-slate-500"}>
-              {feeds.aircraft.count} Aircraft
-            </span>
->>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className={`size-1.5 rounded-full ${feeds.satellites.online ? "bg-emerald-400" : "bg-slate-600"}`} />
-            <span className={feeds.satellites.online ? "text-emerald-100/90" : "text-slate-500"}>
-              {feeds.satellites.count} Satellites
-            </span>
+          <span className={feeds.satellites.online ? "text-emerald-100/80" : "text-slate-500"}>
+            SAT {feeds.satellites.online ? "ONLINE" : "STANDBY"}
           </span>
-<<<<<<< HEAD
+          <span className={feeds.gdelt.online ? "text-violet-100/80" : "text-slate-500"}>
+            GDELT {feeds.gdelt.online ? "ONLINE" : "STANDBY"}
+          </span>
           <span className="tabular-nums">LATENCY {latencyMs || "--"} MS</span>
           <span className="tabular-nums">UPDATED {formatFeedUpdatedAt(updatedAt)}</span>
         </div>
@@ -117,15 +85,7 @@ function TopBar() {
           <span className="size-1.5 rounded-full bg-emerald-300/80" aria-hidden="true" />
           <span className="text-[0.62rem] font-medium uppercase tracking-[0.18em] text-emerald-100/80">
             Online
-=======
-          <span className="flex items-center gap-1.5">
-            <span className={`size-1.5 rounded-full ${feeds.gdelt?.online ? "bg-violet-400" : "bg-slate-600"}`} />
-            <span className={feeds.gdelt?.online ? "text-violet-100/90" : "text-slate-500"}>
-              {feeds.gdelt?.count ?? 0} Events
-            </span>
->>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
           </span>
-          <span className="text-slate-500">{utcTime} UTC</span>
         </div>
       </div>
     </header>

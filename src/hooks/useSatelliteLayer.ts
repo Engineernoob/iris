@@ -40,11 +40,6 @@ import {
 import { useWorldStore } from "@/store/useWorldStore";
 import { registerEntityLookup, unregisterEntityLookup } from "./useEntityHover";
 
-<<<<<<< HEAD
-=======
-const SATELLITE_PULSE_INTERVAL_MS = 1000 / 4;
-
->>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
 type TrackedSatellite = {
   satellite: PropagatedSatellite;
   position: SatellitePosition;
