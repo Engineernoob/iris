@@ -5,14 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check:conflicts": "sh -c '! git grep -n -E \"^(<<<<<<<|=======|>>>>>>>)\" -- .'",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "verify": "npm run check:conflicts && npm run lint && npm run typecheck && npm run build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "@cesium/engine": "^24.0.0",
-    "@cesium/widgets": "^14.5.0",
-    "cesium": "^1.140.0",
     "mapbox-gl": "^3.22.0",
     "next": "16.2.4",
     "react": "19.2.4",

@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+import { StatusDot, TelemetryPill } from "@/components/panelPrimitives";
 import { formatAltitude } from "@/lib/format";
 import { useWorldStore } from "@/store/useWorldStore";
 
@@ -51,26 +52,13 @@ function BottomTicker() {
         <div className="h-4 w-px shrink-0 bg-white/10" aria-hidden="true" />
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {visibleTickerItems.map((item) => (
-            <span
-              key={item.label}
-              className="inline-flex h-6 shrink-0 items-center gap-2 rounded-full bg-white/[0.045] px-2.5 font-mono text-[0.65rem] uppercase tracking-[0.11em] text-slate-300/85 ring-1 ring-white/[0.07]"
-            >
-              <span
-                className={`size-1 rounded-full ${
-                  item.active
-                    ? "bg-emerald-300/75 shadow-[0_0_10px_rgba(110,231,183,0.35)]"
-                    : "bg-slate-500/70"
-                }`}
-                aria-hidden="true"
-              />
-              {item.label}
-            </span>
+            <TelemetryPill key={item.label} label={item.label} active={item.active} />
           ))}
         </div>
         <div className="flex items-center gap-1.5">
-          <span className={`size-1.5 rounded-full ${feeds.aircraft.online ? "bg-cyan-400" : "bg-slate-600"}`} />
-          <span className={`size-1.5 rounded-full ${feeds.satellites.online ? "bg-emerald-400" : "bg-slate-600"}`} />
-          <span className={`size-1.5 rounded-full ${feeds.gdelt.online ? "bg-violet-400" : "bg-slate-600"}`} />
+          <StatusDot active={feeds.aircraft.online} tone="cyan" />
+          <StatusDot active={feeds.satellites.online} tone="emerald" />
+          <StatusDot active={feeds.gdelt.online} tone="violet" />
         </div>
       </div>
     </footer>

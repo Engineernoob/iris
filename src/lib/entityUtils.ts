@@ -1,6 +1,5 @@
 import type { AircraftState } from "@/lib/opensky";
 import type { PropagatedSatellite, SatellitePosition } from "@/lib/satellitePropagation";
-import { useWorldStore } from "@/store/useWorldStore";
 
 export type AircraftVisualState = "airborne" | "landing" | "ground";
 
@@ -41,29 +40,6 @@ export function getAircraftVisualColor(state: AircraftVisualState): string {
   }
 
   return "#67e8f9";
-}
-
-const ICON_CACHE = new Map<AircraftVisualState, string>();
-
-export function getAircraftIconDataUrl(state: AircraftVisualState): string {
-  const cached = ICON_CACHE.get(state);
-  if (cached) {
-    return cached;
-  }
-
-  const fill = getAircraftVisualColor(state);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
-    <path d="M18 2 L22 8 L22 28 L18 32 L14 28 L14 8 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1.2"/>
-    <path d="M14 10 L4 18 L14 16 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
-    <path d="M22 10 L32 18 L22 16 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
-    <path d="M14 28 L8 32 L14 30 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
-    <path d="M22 28 L28 32 L22 30 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
-    <line x1="18" y1="2" x2="18" y2="32" stroke="#020617" stroke-opacity=".25" stroke-width="0.8"/>
-  </svg>`;
-
-  const dataUrl = `data:image/svg+xml,${encodeURIComponent(svg)}`;
-  ICON_CACHE.set(state, dataUrl);
-  return dataUrl;
 }
 
 function formatNullableMetric(value: number | null, suffix: string, fractionDigits = 0): string {
@@ -109,14 +85,4 @@ export function toSatelliteEntityMetadata(
     latitude: `${position.latitude.toFixed(4)} deg`,
     source: "CelesTrak",
   };
-}
-
-export function selectedEntityIdForKind(kind: "aircraft" | "satellite"): string | null {
-  const selectedEntity = useWorldStore.getState().selectedEntity;
-
-  if (selectedEntity?.kind !== kind) {
-    return null;
-  }
-
-  return selectedEntity.id;
 }

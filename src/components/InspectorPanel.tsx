@@ -3,6 +3,12 @@
 import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+import {
+  OpenPanelButton,
+  PanelCollapseButton,
+  PanelHeader,
+  PanelShell,
+} from "@/components/panelPrimitives";
 import { useWorldStore } from "@/store/useWorldStore";
 
 const placeholderFields = [
@@ -44,9 +50,6 @@ const gdeltFieldOrder = [
   ["Longitude", "Longitude"],
 ] as const;
 
-const panelButtonClass =
-  "grid size-10 place-items-center rounded-xl text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60 active:scale-[0.96]";
-
 function InspectorPanel() {
   const { selectedEntity, panelOpen, setPanelOpen } = useWorldStore(
     useShallow((state) => ({
@@ -58,47 +61,38 @@ function InspectorPanel() {
 
   if (!panelOpen) {
     return (
-      <button
-        type="button"
-        className="absolute right-4 top-20 z-20 min-h-11 rounded-xl bg-slate-950/60 px-3 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-100 shadow-[0_16px_50px_rgba(0,0,0,0.24),0_0_30px_rgba(16,185,129,0.05)] ring-1 ring-white/[0.09] backdrop-blur-xl transition-colors hover:bg-slate-900/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"
+      <OpenPanelButton
+        accent="emerald"
+        side="right"
+        controls="iris-inspector-panel"
+        icon={
+          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        }
         onClick={() => setPanelOpen("right", true)}
-        aria-expanded={false}
-        aria-controls="iris-inspector-panel"
       >
-        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
         Inspector
-      </button>
+      </OpenPanelButton>
     );
   }
 
   return (
-    <aside
+    <PanelShell
       id="iris-inspector-panel"
-      className="absolute right-3 top-[22rem] z-20 max-h-[calc(100dvh-25rem)] w-[min(19rem,calc(100vw-1.5rem))] overflow-y-auto rounded-2xl bg-slate-950/52 text-slate-100 shadow-[0_20px_70px_rgba(0,0,0,0.28),0_0_34px_rgba(16,185,129,0.05)] ring-1 ring-white/[0.09] backdrop-blur-2xl sm:right-4 lg:top-20 lg:max-h-[calc(100dvh-8.5rem)]"
-      aria-labelledby="iris-inspector-title"
+      labelledBy="iris-inspector-title"
+      accent="emerald"
+      side="right"
+      widthClassName="w-[min(19rem,calc(100vw-1.5rem))]"
     >
-      <div className="flex items-center justify-between px-4 pb-2 pt-3.5">
-        <div>
-          <p className="text-[0.6rem] font-medium uppercase tracking-[0.22em] text-slate-500">
-            Inspector
-          </p>
-          <h2 id="iris-inspector-title" className="mt-1 text-xs font-medium text-slate-200">
-            Selected entity
-          </h2>
-        </div>
-        <button
-          type="button"
-          className={panelButtonClass}
+      <PanelHeader eyebrow="Inspector" title="Selected entity" titleId="iris-inspector-title">
+        <PanelCollapseButton
+          accent="emerald"
+          controls="iris-inspector-panel"
           aria-label="Collapse inspector panel"
-          aria-expanded={true}
-          aria-controls="iris-inspector-panel"
           onClick={() => setPanelOpen("right", false)}
-        >
-          <span aria-hidden="true">-</span>
-        </button>
-      </div>
+        />
+      </PanelHeader>
       <div className="p-4">
         {selectedEntity ? (
           <div className="rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/[0.07]">
@@ -187,7 +181,7 @@ function InspectorPanel() {
           </div>
         )}
       </div>
-    </aside>
+    </PanelShell>
   );
 }
 

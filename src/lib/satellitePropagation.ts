@@ -1,9 +1,13 @@
-import { twoline2satrec } from "../../node_modules/satellite.js/dist/io.js";
-import { gstime, propagate } from "../../node_modules/satellite.js/dist/propagation.js";
-import type { SatRec } from "../../node_modules/satellite.js/dist/propagation/SatRec.js";
-import { degreesLat, degreesLong, eciToGeodetic } from "../../node_modules/satellite.js/dist/transforms.js";
-
 import type { SatelliteTle } from "@/lib/celestrak";
+import {
+  degreesLat,
+  degreesLong,
+  eciToGeodetic,
+  gstime,
+  propagate,
+  twoline2satrec,
+} from "@/lib/satelliteJsAdapter";
+import type { SatRec } from "@/lib/satelliteJsAdapter";
 
 export type PropagatedSatellite = SatelliteTle & {
   satrec: SatRec;

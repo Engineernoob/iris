@@ -3,6 +3,13 @@
 import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+import {
+  OpenPanelButton,
+  PanelCollapseButton,
+  PanelHeader,
+  PanelShell,
+  StatusDot,
+} from "@/components/panelPrimitives";
 import type { LayerId } from "@/store/useWorldStore";
 import { useWorldStore } from "@/store/useWorldStore";
 
@@ -14,9 +21,6 @@ const layers: Array<{ id: LayerId; label: string; detail: string }> = [
   { id: "terrain", label: "Terrain", detail: "Elevation occlusion model" },
   { id: "hud", label: "HUD", detail: "Mission readout overlay" },
 ];
-
-const panelButtonClass =
-  "grid size-10 place-items-center rounded-xl text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60 active:scale-[0.96]";
 
 function LayerPanel() {
   const { activeLayers, toggleLayer, panelOpen, setPanelOpen } = useWorldStore(
@@ -30,47 +34,38 @@ function LayerPanel() {
 
   if (!panelOpen) {
     return (
-      <button
-        type="button"
-        className="absolute left-4 top-20 z-20 min-h-11 rounded-xl bg-slate-950/60 px-3 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-100 shadow-[0_16px_50px_rgba(0,0,0,0.24),0_0_30px_rgba(14,165,233,0.05)] ring-1 ring-white/[0.09] backdrop-blur-xl transition-colors hover:bg-slate-900/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60"
+      <OpenPanelButton
+        accent="cyan"
+        side="left"
+        controls="iris-layer-panel"
+        icon={
+          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        }
         onClick={() => setPanelOpen("left", true)}
-        aria-expanded={false}
-        aria-controls="iris-layer-panel"
       >
-        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
         Layers
-      </button>
+      </OpenPanelButton>
     );
   }
 
   return (
-    <aside
+    <PanelShell
       id="iris-layer-panel"
-      className="absolute left-3 top-20 z-20 max-h-[calc(100dvh-8.5rem)] w-[min(18rem,calc(100vw-1.5rem))] overflow-y-auto rounded-2xl bg-slate-950/52 text-slate-100 shadow-[0_20px_70px_rgba(0,0,0,0.28),0_0_34px_rgba(14,165,233,0.05)] ring-1 ring-white/[0.09] backdrop-blur-2xl sm:left-4 sm:w-[18rem]"
-      aria-labelledby="iris-layer-panel-title"
+      labelledBy="iris-layer-panel-title"
+      accent="cyan"
+      side="left"
+      widthClassName="w-[min(18rem,calc(100vw-1.5rem))] sm:w-[18rem]"
     >
-      <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5">
-        <div>
-          <p className="text-[0.6rem] font-medium uppercase tracking-widest text-slate-500">
-            Layers
-          </p>
-          <h2 id="iris-layer-panel-title" className="mt-1 text-xs font-medium text-slate-200">
-            Mission visibility
-          </h2>
-        </div>
-        <button
-          type="button"
-          className={panelButtonClass}
+      <PanelHeader eyebrow="Layers" title="Mission visibility" titleId="iris-layer-panel-title">
+        <PanelCollapseButton
+          accent="cyan"
+          controls="iris-layer-panel"
           aria-label="Collapse layer panel"
-          aria-expanded={true}
-          aria-controls="iris-layer-panel"
           onClick={() => setPanelOpen("left", false)}
-        >
-          <span aria-hidden="true">-</span>
-        </button>
-      </div>
+        />
+      </PanelHeader>
       <div className="p-2">
         {layers.map((layer) => {
           const active = activeLayers[layer.id];
@@ -84,12 +79,7 @@ function LayerPanel() {
               aria-pressed={active}
               aria-label={`${active ? "Disable" : "Enable"} ${layer.label} layer`}
             >
-              <span
-                className={`size-2 rounded-full transition-all ${
-                  active ? "bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]" : "bg-slate-600/70"
-                }`}
-                aria-hidden="true"
-              />
+              <StatusDot active={active} tone="cyan" />
               <span className="min-w-0">
                 <span className="block truncate text-[0.8rem] font-medium text-slate-100">{layer.label}</span>
                 <span className="mt-0.5 block truncate text-[0.68rem] text-slate-400/75">
@@ -112,7 +102,7 @@ function LayerPanel() {
           );
         })}
       </div>
-    </aside>
+    </PanelShell>
   );
 }
 

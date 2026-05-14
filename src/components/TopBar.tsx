@@ -3,6 +3,7 @@
 import { memo, useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+import { StatusDot } from "@/components/panelPrimitives";
 import { formatUtcClock } from "@/lib/format";
 import { useWorldStore } from "@/store/useWorldStore";
 
@@ -82,7 +83,7 @@ function TopBar() {
           role="status"
           aria-live="polite"
         >
-          <span className="size-1.5 rounded-full bg-emerald-300/80" aria-hidden="true" />
+          <StatusDot active tone="emerald" />
           <span className="text-[0.62rem] font-medium uppercase tracking-[0.18em] text-emerald-100/80">
             Online
           </span>

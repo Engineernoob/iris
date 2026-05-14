@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-const CesiumViewer = dynamic(() => import("@/components/CesiumViewer"), {
+const MapboxGlobe = dynamic(() => import("@/components/MapboxGlobe"), {
   ssr: false,
   loading: () => <div className="fixed inset-0 bg-[#02070a]" aria-label="Loading Iris globe" />,
 });
@@ -30,7 +30,7 @@ const BottomTicker = dynamic(() => import("@/components/BottomTicker"), {
 export default function Home() {
   return (
     <main className="relative h-dvh w-dvw overflow-hidden bg-[#02070a]">
-      <CesiumViewer />
+      <MapboxGlobe />
       <HudOverlay />
       <TopBar />
       <LayerPanel />

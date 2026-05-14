@@ -28,25 +28,3 @@ button,
 input {
   font: inherit;
 }
-
-.cesium-viewer,
-.cesium-viewer-cesiumWidgetContainer,
-.cesium-widget,
-.cesium-widget canvas {
-  height: 100%;
-  width: 100%;
-}
-
-.cesium-widget canvas {
-  cursor: grab;
-  touch-action: none;
-}
-
-.cesium-widget canvas:active {
-  cursor: grabbing;
-}
-
-.cesium-viewer-bottom,
-.cesium-widget-credits {
-  display: none !important;
-}
