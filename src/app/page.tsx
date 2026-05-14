@@ -10,12 +10,12 @@ import { TopBar } from "@/components/TopBar";
 
 const CesiumViewer = dynamic(() => import("@/components/CesiumViewer"), {
   ssr: false,
-  loading: () => <div className="fixed inset-0 bg-black" />,
+  loading: () => <div className="fixed inset-0 bg-[#02070a]" aria-label="Loading Iris globe" />,
 });
 
 export default function Home() {
   return (
-    <main className="relative h-dvh w-dvw overflow-hidden bg-black">
+    <main className="relative h-dvh w-dvw overflow-hidden bg-[#02070a]">
       <CesiumViewer />
       <HudOverlay />
       <TopBar />

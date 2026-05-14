@@ -41,7 +41,6 @@ import type { AircraftState } from "@/lib/opensky";
 import { fetchAircraftStates } from "@/lib/opensky";
 import { useWorldStore } from "@/store/useWorldStore";
 
-const AIRCRAFT_ANIMATION_INTERVAL_MS = 1000 / 15;
 const AIRCRAFT_TRAIL_MAX_POINTS = 24;
 const AIRCRAFT_TRAIL_SAMPLE_MS = 1_200;
 
@@ -60,12 +59,13 @@ type AircraftRefs = {
   entityById: Map<string, import("cesium").Entity>;
   aircraftByEntityId: Map<string, AircraftState>;
   positionByEntityId: Map<string, ConstantPositionProperty>;
+  labelVisibilityByEntityId: Map<string, ConstantProperty>;
   interpolationByEntityId: Map<string, Interpolation>;
   visualStateByEntityId: Map<string, string>;
 };
 
 function selectAircraftForRender(aircraftStates: AircraftState[]): AircraftState[] {
-  return [...aircraftStates]
+  return aircraftStates
     .filter((aircraft) => aircraft.icao24)
     .sort((first, second) => {
       if (first.onGround !== second.onGround) {
@@ -92,9 +92,7 @@ function syncAircraftLabels(viewer: Viewer, refs: AircraftRefs, moving: boolean)
   };
 
   refs.entityById.forEach((entity, entityId) => {
-    if (entity?.label) {
-      entity.label.show = new ConstantProperty(showPredicate(entityId));
-    }
+    refs.labelVisibilityByEntityId.get(entityId)?.setValue(showPredicate(entityId));
   });
 }
 
@@ -105,6 +103,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
     entityById: new Map(),
     aircraftByEntityId: new Map(),
     positionByEntityId: new Map(),
+    labelVisibilityByEntityId: new Map(),
     interpolationByEntityId: new Map(),
     visualStateByEntityId: new Map(),
   });
@@ -131,6 +130,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
       refs.entityById.clear();
       refs.aircraftByEntityId.clear();
       refs.positionByEntityId.clear();
+      refs.labelVisibilityByEntityId.clear();
       refs.interpolationByEntityId.clear();
       refs.visualStateByEntityId.clear();
       trailPositionsRef.current = [];
@@ -260,7 +260,9 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
           }
 
           const newPositionProperty = new ConstantPositionProperty(position);
+          const labelVisibilityProperty = new ConstantProperty(false);
           refs.positionByEntityId.set(entityId, newPositionProperty);
+          refs.labelVisibilityByEntityId.set(entityId, labelVisibilityProperty);
           refs.visualStateByEntityId.set(entityId, visualState);
 
           const entity = viewer.entities.add({
@@ -278,7 +280,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
               disableDepthTestDistance: 2_500_000,
             },
             label: {
-              show: false,
+              show: labelVisibilityProperty,
               text: label,
               font: "500 11px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
               fillColor: LABEL_FILL_COLOR,
@@ -301,6 +303,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
             refs.entityById.delete(entityId);
             refs.aircraftByEntityId.delete(entityId);
             refs.positionByEntityId.delete(entityId);
+            refs.labelVisibilityByEntityId.delete(entityId);
             refs.interpolationByEntityId.delete(entityId);
             refs.visualStateByEntityId.delete(entityId);
           }
@@ -368,8 +371,14 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
     const refreshInterval = window.setInterval(() => {
       void updateAircraftEntities();
     }, AIRCRAFT_REFRESH_INTERVAL_MS);
-    const animationInterval = window.setInterval(() => {
-      const now = Date.now();
+    let animationFrameId: number | null = null;
+
+    const runAnimationFrame = () => {
+      if (cancelled) {
+        return;
+      }
+
+      const now = performance.now();
 
       refs.interpolationByEntityId.forEach((interpolation, entityId) => {
         const positionProperty = refs.positionByEntityId.get(entityId);
@@ -410,12 +419,18 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
       if (trailPositionsRef.current.length > 0) {
         viewer.scene.requestRender();
       }
-    }, AIRCRAFT_ANIMATION_INTERVAL_MS);
+
+      animationFrameId = requestAnimationFrame(runAnimationFrame);
+    };
+
+    animationFrameId = requestAnimationFrame(runAnimationFrame);
 
     return () => {
       cancelled = true;
       window.clearInterval(refreshInterval);
-      window.clearInterval(animationInterval);
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
       removeMoveStart();
       removeMoveEnd();
       unsubscribeSelection();
