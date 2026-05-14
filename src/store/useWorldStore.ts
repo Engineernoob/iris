@@ -1,15 +1,17 @@
 import { create } from "zustand";
 
-export type LayerId = "mapboxSatellite" | "aircraft" | "satellites" | "terrain" | "hud";
+export type LayerId = "mapboxSatellite" | "aircraft" | "satellites" | "gdelt" | "terrain" | "hud";
 
-const DEFAULT_CAMERA_HEIGHT_METERS = 14_500_000;
+const DEFAULT_CAMERA_HEIGHT_METERS = 5_000_000;
 
 export type SelectedEntity = {
   id: string;
   name: string;
-  kind: "aircraft" | "satellite" | "terrain" | "unknown";
+  kind: "aircraft" | "satellite" | "terrain" | "gdelt" | "unknown";
   metadata?: Record<string, string | number | boolean | null>;
 } | null;
+
+export type HoveredEntity = SelectedEntity;
 
 type Coordinates = {
   latitude: number;
@@ -33,11 +35,14 @@ type FeedChannelStatus = {
 type FeedStatus = {
   aircraft: FeedChannelStatus;
   satellites: FeedChannelStatus;
+  gdelt: FeedChannelStatus;
 };
 
 type WorldState = {
   activeLayers: Record<LayerId, boolean>;
   selectedEntity: SelectedEntity;
+  hoveredEntity: HoveredEntity;
+  hoverPosition: { x: number; y: number } | null;
   panels: {
     left: boolean;
     right: boolean;
@@ -46,6 +51,7 @@ type WorldState = {
   feeds: FeedStatus;
   toggleLayer: (layer: LayerId) => void;
   setSelectedEntity: (entity: SelectedEntity) => void;
+  setHoveredEntity: (entity: HoveredEntity, position: { x: number; y: number } | null) => void;
   setPanelOpen: (panel: keyof WorldState["panels"], open: boolean) => void;
   updateGlobeSettings: (settings: Partial<GlobeSettings>) => void;
   updateFeedStatus: (feed: keyof FeedStatus, status: Partial<FeedChannelStatus>) => void;
@@ -56,10 +62,13 @@ export const useWorldStore = create<WorldState>((set) => ({
     mapboxSatellite: true,
     aircraft: true,
     satellites: true,
+    gdelt: false,
     terrain: false,
     hud: true,
   },
   selectedEntity: null,
+  hoveredEntity: null,
+  hoverPosition: null,
   panels: {
     left: true,
     right: true,
@@ -82,6 +91,12 @@ export const useWorldStore = create<WorldState>((set) => ({
       latencyMs: null,
       updatedAt: null,
     },
+    gdelt: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
+    },
   },
   toggleLayer: (layer) =>
     set((state) => ({
@@ -91,6 +106,8 @@ export const useWorldStore = create<WorldState>((set) => ({
       },
     })),
   setSelectedEntity: (entity) => set({ selectedEntity: entity }),
+  setHoveredEntity: (entity, position) =>
+    set({ hoveredEntity: entity, hoverPosition: position }),
   setPanelOpen: (panel, open) =>
     set((state) => ({
       panels: {

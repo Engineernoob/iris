@@ -52,7 +52,14 @@ export function getAircraftIconDataUrl(state: AircraftVisualState): string {
   }
 
   const fill = getAircraftVisualColor(state);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><path d="M18 2 28 31 18 26 8 31 18 2Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1.6"/><path d="M18 8v17" stroke="#020617" stroke-opacity=".5" stroke-width="1.4"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+    <path d="M18 2 L22 8 L22 28 L18 32 L14 28 L14 8 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1.2"/>
+    <path d="M14 10 L4 18 L14 16 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
+    <path d="M22 10 L32 18 L22 16 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
+    <path d="M14 28 L8 32 L14 30 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
+    <path d="M22 28 L28 32 L22 30 Z" fill="${fill}" stroke="#ecfeff" stroke-opacity=".72" stroke-width="1"/>
+    <line x1="18" y1="2" x2="18" y2="32" stroke="#020617" stroke-opacity=".25" stroke-width="0.8"/>
+  </svg>`;
 
   const dataUrl = `data:image/svg+xml,${encodeURIComponent(svg)}`;
   ICON_CACHE.set(state, dataUrl);

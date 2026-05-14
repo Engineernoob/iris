@@ -40,7 +40,12 @@ import { fetchWithBackoff, warnFeedFailureOnce } from "@/lib/feedRetry";
 import type { AircraftState } from "@/lib/opensky";
 import { fetchAircraftStates } from "@/lib/opensky";
 import { useWorldStore } from "@/store/useWorldStore";
+import { registerEntityLookup, unregisterEntityLookup } from "./useEntityHover";
 
+<<<<<<< HEAD
+=======
+const AIRCRAFT_ANIMATION_INTERVAL_MS = 1000 / 10;
+>>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
 const AIRCRAFT_TRAIL_MAX_POINTS = 24;
 const AIRCRAFT_TRAIL_SAMPLE_MS = 1_200;
 
@@ -121,6 +126,17 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
     }
 
     const refs = refsRef.current;
+
+    registerEntityLookup("aircraft:", (cesiumId: string) => {
+      const aircraft = refs.aircraftByEntityId.get(cesiumId);
+      if (!aircraft) return null;
+      return {
+        id: aircraft.icao24.toUpperCase(),
+        name: formatAircraftName(aircraft),
+        kind: "aircraft" as const,
+        metadata: toAircraftEntityMetadata(aircraft),
+      };
+    });
 
     const removeAircraftEntities = () => {
       refs.entityIds.forEach((entityId) => {
@@ -248,8 +264,9 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
 
             const existingEntity = viewer.entities.getById(entityId);
             if (existingEntity?.billboard) {
+              const currentHeading = aircraft.headingDegrees ?? 0;
               existingEntity.billboard.rotation = new ConstantProperty(
-                CesiumMath.toRadians(-(aircraft.headingDegrees ?? 0)),
+                CesiumMath.toRadians(-currentHeading),
               );
               if (refs.visualStateByEntityId.get(entityId) !== visualState) {
                 existingEntity.billboard.image = new ConstantProperty(icon);
@@ -371,6 +388,7 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
     const refreshInterval = window.setInterval(() => {
       void updateAircraftEntities();
     }, AIRCRAFT_REFRESH_INTERVAL_MS);
+<<<<<<< HEAD
     let animationFrameId: number | null = null;
 
     const runAnimationFrame = () => {
@@ -379,6 +397,16 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
       }
 
       const now = performance.now();
+=======
+    let animationTimeout: number | null = null;
+    let animationCancelled = false;
+    const runAnimationStep = () => {
+      if (animationCancelled) {
+        return;
+      }
+
+      const now = Date.now();
+>>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
 
       refs.interpolationByEntityId.forEach((interpolation, entityId) => {
         const positionProperty = refs.positionByEntityId.get(entityId);
@@ -420,21 +448,40 @@ export function useAircraftLayer(viewerRef: RefObject<Viewer | null>, ready: boo
         viewer.scene.requestRender();
       }
 
+<<<<<<< HEAD
       animationFrameId = requestAnimationFrame(runAnimationFrame);
     };
 
     animationFrameId = requestAnimationFrame(runAnimationFrame);
+=======
+      const selectedAircraftId = selectedEntityIdForKind("aircraft");
+      const hasActiveAnimation = refs.interpolationByEntityId.size > 0 || Boolean(selectedAircraftId);
+      animationTimeout = window.setTimeout(
+        runAnimationStep,
+        hasActiveAnimation ? AIRCRAFT_ANIMATION_INTERVAL_MS : 500,
+      );
+    };
+
+    runAnimationStep();
+>>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
 
     return () => {
       cancelled = true;
+      animationCancelled = true;
       window.clearInterval(refreshInterval);
+<<<<<<< HEAD
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
+=======
+      if (animationTimeout !== null) {
+        window.clearTimeout(animationTimeout);
+>>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
       }
       removeMoveStart();
       removeMoveEnd();
       unsubscribeSelection();
       clickHandler.destroy();
+      unregisterEntityLookup("aircraft:");
       removeAircraftEntities();
     };
   }, [active, ready, viewerRef]);

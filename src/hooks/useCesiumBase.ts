@@ -3,8 +3,9 @@
 import type { RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { ImageryLayer, Viewer } from "cesium";
+import { Cartographic, Math as CesiumMath } from "cesium";
 
-import { CESIUM_BASE_URL, configureViewer, createMapboxLayer } from "@/lib/cesiumConfig";
+import { CESIUM_BASE_URL, configureViewer, createMapboxLayer, approximateZoomLevel } from "@/lib/cesiumConfig";
 import { useWorldStore } from "@/store/useWorldStore";
 
 export function useCesiumBase(containerRef: RefObject<HTMLDivElement | null>) {
@@ -34,6 +35,21 @@ export function useCesiumBase(containerRef: RefObject<HTMLDivElement | null>) {
       viewer.imageryLayers.add(mapboxLayer);
       mapboxImageryLayerRef.current = mapboxLayer;
     }
+
+    // Update store with initial camera position
+    const cameraPosition = Cartographic.fromCartesian(
+      viewer.camera.positionWC,
+      viewer.scene.globe.ellipsoid
+    );
+    useWorldStore.getState().updateGlobeSettings({
+      cameraHeightMeters: cameraPosition.height,
+      zoomLevel: approximateZoomLevel(cameraPosition.height),
+      coordinates: {
+        latitude: CesiumMath.toDegrees(cameraPosition.latitude),
+        longitude: CesiumMath.toDegrees(cameraPosition.longitude),
+        altitudeMeters: cameraPosition.height,
+      },
+    });
 
     viewer.scene.requestRender();
     setReady(true);

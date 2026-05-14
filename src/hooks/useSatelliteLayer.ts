@@ -38,7 +38,13 @@ import {
   propagateSatellitePosition,
 } from "@/lib/satellitePropagation";
 import { useWorldStore } from "@/store/useWorldStore";
+import { registerEntityLookup, unregisterEntityLookup } from "./useEntityHover";
 
+<<<<<<< HEAD
+=======
+const SATELLITE_PULSE_INTERVAL_MS = 1000 / 4;
+
+>>>>>>> 9bb8ea75ec4f7e2578f93f261ed746d19313b2e1
 type TrackedSatellite = {
   satellite: PropagatedSatellite;
   position: SatellitePosition;
@@ -132,6 +138,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
     positionCacheByEntityId: new Map(),
   });
   const satelliteCatalogRef = useRef<PropagatedSatellite[] | null>(null);
+  const fetchAttemptsRef = useRef(0);
   const movingRef = useRef(false);
   const requestInFlightRef = useRef(false);
   const warnedFailureRef = useRef(false);
@@ -144,6 +151,17 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
     }
 
     const refs = refsRef.current;
+
+    registerEntityLookup("satellite:", (cesiumId: string) => {
+      const trackedSatellite = refs.satelliteByEntityId.get(cesiumId);
+      if (!trackedSatellite) return null;
+      return {
+        id: trackedSatellite.satellite.noradId,
+        name: trackedSatellite.satellite.name,
+        kind: "satellite" as const,
+        metadata: toSatelliteEntityMetadata(trackedSatellite.satellite, trackedSatellite.position),
+      };
+    });
 
     const removeSatelliteEntities = () => {
       refs.entityIds.forEach((entityId) => {
@@ -172,13 +190,23 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
     let cancelled = false;
 
     const getSatelliteCatalog = async () => {
-      if (satelliteCatalogRef.current) {
+      if (satelliteCatalogRef.current && satelliteCatalogRef.current.length > 0) {
         return satelliteCatalogRef.current;
       }
 
+      fetchAttemptsRef.current += 1;
       const tles = await fetchWithBackoff(() =>
         fetchActiveSatelliteTles(MAX_RENDERED_SATELLITES),
       );
+
+      if (tles.length === 0 && fetchAttemptsRef.current < 3) {
+        useWorldStore.getState().updateFeedStatus("satellites", {
+          online: false,
+          count: 0,
+        });
+        return [];
+      }
+
       const satellites = tles
         .map(createPropagatedSatellite)
         .filter((satellite): satellite is PropagatedSatellite => satellite !== null)
@@ -409,6 +437,7 @@ export function useSatelliteLayer(viewerRef: RefObject<Viewer | null>, ready: bo
       removeMoveEnd();
       unsubscribeSelection();
       clickHandler.destroy();
+      unregisterEntityLookup("satellite:");
       removeSatelliteEntities();
     };
   }, [active, ready, viewerRef]);

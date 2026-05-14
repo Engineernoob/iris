@@ -2,15 +2,29 @@
 
 import dynamic from "next/dynamic";
 
-import { BottomTicker } from "@/components/BottomTicker";
-import { HudOverlay } from "@/components/HudOverlay";
-import { InspectorPanel } from "@/components/InspectorPanel";
-import { LayerPanel } from "@/components/LayerPanel";
-import { TopBar } from "@/components/TopBar";
-
 const CesiumViewer = dynamic(() => import("@/components/CesiumViewer"), {
   ssr: false,
   loading: () => <div className="fixed inset-0 bg-[#02070a]" aria-label="Loading Iris globe" />,
+});
+
+const HudOverlay = dynamic(() => import("@/components/HudOverlay"), {
+  ssr: false,
+});
+
+const TopBar = dynamic(() => import("@/components/TopBar"), {
+  ssr: false,
+});
+
+const LayerPanel = dynamic(() => import("@/components/LayerPanel"), {
+  ssr: false,
+});
+
+const EntityTooltip = dynamic(() => import("@/components/EntityTooltip"), {
+  ssr: false,
+});
+
+const BottomTicker = dynamic(() => import("@/components/BottomTicker"), {
+  ssr: false,
 });
 
 export default function Home() {
@@ -20,7 +34,7 @@ export default function Home() {
       <HudOverlay />
       <TopBar />
       <LayerPanel />
-      <InspectorPanel />
+      <EntityTooltip />
       <BottomTicker />
     </main>
   );
