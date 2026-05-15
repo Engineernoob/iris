@@ -79,6 +79,10 @@ const FALLBACK_TLES: SatelliteTle[] = [
   },
 ];
 
+export function fallbackSatelliteTles(limit = INITIAL_SATELLITE_LIMIT): SatelliteTle[] {
+  return FALLBACK_TLES.slice(0, limit);
+}
+
 export async function fetchActiveSatelliteTles(
   limit = INITIAL_SATELLITE_LIMIT,
 ): Promise<SatelliteTle[]> {
@@ -89,18 +93,18 @@ export async function fetchActiveSatelliteTles(
 
     if (!response.ok) {
       console.log("Satellite API returned non-OK status, using fallback data");
-      return FALLBACK_TLES.slice(0, limit);
+      return fallbackSatelliteTles(limit);
     }
 
     const data = (await response.json()) as SatelliteTle[];
     if (data.length === 0) {
       console.log("Satellite API returned empty data, using fallback");
-      return FALLBACK_TLES.slice(0, limit);
+      return fallbackSatelliteTles(limit);
     }
 
     return data.slice(0, limit);
   } catch (error) {
     console.error("Failed to fetch satellites, using fallback:", error);
-    return FALLBACK_TLES.slice(0, limit);
+    return fallbackSatelliteTles(limit);
   }
 }
