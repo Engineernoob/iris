@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 export type LayerId = "mapboxSatellite" | "aircraft" | "satellites" | "gdelt" | "terrain" | "hud";
+export type SensorMode = "normal" | "nvg" | "thermal" | "crt" | "analyst";
 
 const DEFAULT_CAMERA_HEIGHT_METERS = 5_000_000;
 
@@ -40,6 +41,8 @@ type FeedStatus = {
 
 type WorldState = {
   activeLayers: Record<LayerId, boolean>;
+  sensorMode: SensorMode;
+  followEnabled: boolean;
   selectedEntity: SelectedEntity;
   hoveredEntity: HoveredEntity;
   hoverPosition: { x: number; y: number } | null;
@@ -50,6 +53,8 @@ type WorldState = {
   globe: GlobeSettings;
   feeds: FeedStatus;
   toggleLayer: (layer: LayerId) => void;
+  setSensorMode: (mode: SensorMode) => void;
+  setFollowEnabled: (enabled: boolean) => void;
   setSelectedEntity: (entity: SelectedEntity) => void;
   setHoveredEntity: (entity: HoveredEntity, position: { x: number; y: number } | null) => void;
   setPanelOpen: (panel: keyof WorldState["panels"], open: boolean) => void;
@@ -66,6 +71,8 @@ export const useWorldStore = create<WorldState>((set) => ({
     terrain: false,
     hud: true,
   },
+  sensorMode: "normal",
+  followEnabled: false,
   selectedEntity: null,
   hoveredEntity: null,
   hoverPosition: null,
@@ -105,6 +112,8 @@ export const useWorldStore = create<WorldState>((set) => ({
         [layer]: !state.activeLayers[layer],
       },
     })),
+  setSensorMode: (mode) => set({ sensorMode: mode }),
+  setFollowEnabled: (enabled) => set({ followEnabled: enabled }),
   setSelectedEntity: (entity) => set({ selectedEntity: entity }),
   setHoveredEntity: (entity, position) =>
     set({ hoveredEntity: entity, hoverPosition: position }),

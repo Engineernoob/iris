@@ -28,3 +28,110 @@ button,
 input {
   font: inherit;
 }
+
+.sensor-mode {
+  isolation: isolate;
+}
+
+.sensor-mode .mapboxgl-canvas {
+  transition: filter 160ms ease, opacity 160ms ease;
+}
+
+.sensor-mode-normal .sensor-overlay,
+.sensor-mode-normal .sensor-reticle {
+  display: none;
+}
+
+.sensor-mode-analyst .mapboxgl-canvas {
+  filter: saturate(0.82) contrast(1.18) brightness(0.9);
+}
+
+.sensor-mode-nvg .mapboxgl-canvas {
+  filter: grayscale(0.75) sepia(0.45) hue-rotate(58deg) saturate(2.6) contrast(1.25) brightness(0.78);
+}
+
+.sensor-mode-thermal .mapboxgl-canvas {
+  filter: grayscale(1) contrast(1.7) brightness(0.9) sepia(0.55) hue-rotate(155deg) saturate(3.2);
+}
+
+.sensor-mode-crt .mapboxgl-canvas {
+  filter: contrast(1.3) saturate(0.75) brightness(0.82);
+}
+
+.sensor-overlay {
+  z-index: 8;
+  mix-blend-mode: screen;
+}
+
+.sensor-mode-analyst .sensor-overlay {
+  background:
+    linear-gradient(rgba(103, 232, 249, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(103, 232, 249, 0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.sensor-mode-nvg .sensor-overlay {
+  background:
+    radial-gradient(circle at center, transparent 0 42%, rgba(0, 0, 0, 0.28) 72%, rgba(0, 0, 0, 0.56) 100%),
+    linear-gradient(rgba(134, 239, 172, 0.08) 50%, transparent 50%);
+  background-size: auto, 100% 4px;
+}
+
+.sensor-mode-thermal .sensor-overlay {
+  background:
+    radial-gradient(circle at 45% 48%, rgba(250, 204, 21, 0.16), transparent 22%),
+    linear-gradient(120deg, rgba(239, 68, 68, 0.12), rgba(6, 182, 212, 0.11), rgba(34, 197, 94, 0.06));
+  mix-blend-mode: color-dodge;
+}
+
+.sensor-mode-crt .sensor-overlay {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.06) 50%, rgba(0, 0, 0, 0.16) 50%),
+    radial-gradient(circle at center, transparent 0 48%, rgba(0, 0, 0, 0.38) 100%);
+  background-size: 100% 3px, auto;
+  mix-blend-mode: overlay;
+}
+
+.sensor-reticle {
+  display: none;
+}
+
+.sensor-mode-analyst .sensor-reticle,
+.sensor-mode-nvg .sensor-reticle,
+.sensor-mode-thermal .sensor-reticle,
+.sensor-mode-crt .sensor-reticle {
+  display: block;
+}
+
+.sensor-reticle::before,
+.sensor-reticle::after {
+  content: "";
+  position: absolute;
+  background: rgba(207, 250, 254, 0.48);
+}
+
+.sensor-reticle::before {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.sensor-reticle::after {
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.sensor-mode-nvg .sensor-reticle::before,
+.sensor-mode-nvg .sensor-reticle::after {
+  background: rgba(134, 239, 172, 0.52);
+}
+
+.sensor-mode-thermal .sensor-reticle::before,
+.sensor-mode-thermal .sensor-reticle::after {
+  background: rgba(253, 224, 71, 0.5);
+}

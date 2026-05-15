@@ -51,10 +51,12 @@ const gdeltFieldOrder = [
 ] as const;
 
 function InspectorPanel() {
-  const { selectedEntity, panelOpen, setPanelOpen } = useWorldStore(
+  const { followEnabled, selectedEntity, panelOpen, setFollowEnabled, setPanelOpen } = useWorldStore(
     useShallow((state) => ({
+      followEnabled: state.followEnabled,
       selectedEntity: state.selectedEntity,
       panelOpen: state.panels.right,
+      setFollowEnabled: state.setFollowEnabled,
       setPanelOpen: state.setPanelOpen,
     })),
   );
@@ -94,6 +96,21 @@ function InspectorPanel() {
         />
       </PanelHeader>
       <div className="p-4">
+        {selectedEntity && (
+          <button
+            type="button"
+            className={`mb-3 flex min-h-9 w-full items-center justify-between rounded-xl px-3 text-left text-[0.65rem] font-medium uppercase tracking-[0.14em] ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60 ${
+              followEnabled
+                ? "bg-emerald-300/[0.1] text-emerald-100/80 ring-emerald-200/20"
+                : "bg-white/[0.04] text-slate-400 ring-white/[0.07] hover:bg-white/[0.06] hover:text-slate-100"
+            }`}
+            aria-pressed={followEnabled}
+            onClick={() => setFollowEnabled(!followEnabled)}
+          >
+            <span>Follow target</span>
+            <span className="font-mono text-[0.62rem]">{followEnabled ? "ON" : "OFF"}</span>
+          </button>
+        )}
         {selectedEntity ? (
           <div className="rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/[0.07]">
             <div className="border-b border-white/[0.06] pb-3">

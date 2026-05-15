@@ -62,6 +62,18 @@ function selectedEntityIdForKind(kind: "aircraft" | "satellite"): string | null 
   return selectedEntity.id;
 }
 
+function entityKeyForSelection(entity: NonNullable<SelectedEntity>): string {
+  if (entity.kind === "aircraft") {
+    return createAircraftEntityId(entity.id.toLowerCase());
+  }
+
+  if (entity.kind === "satellite") {
+    return createSatelliteEntityId(entity.id);
+  }
+
+  return entity.id;
+}
+
 function emptyLine(): FeatureCollection<LineString> {
   return EMPTY_LINE;
 }
@@ -293,6 +305,7 @@ function ensureMapLayers(map: mapboxgl.Map): void {
 
 export default function MapboxGlobe() {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const sensorMode = useWorldStore((state) => state.sensorMode);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -303,6 +316,7 @@ export default function MapboxGlobe() {
     mapboxgl.accessToken = MAPBOX_TOKEN;
     const initialLayers = useWorldStore.getState().activeLayers;
     const entityById = new Map<string, NonNullable<SelectedEntity>>();
+    const entityPositionById = new Map<string, [number, number]>();
     const aircraftTrailById = new Map<string, Array<[number, number]>>();
     const satelliteCatalogById = new Map<string, PropagatedSatellite>();
     const warnedAircraftFailureRef = { current: false };
@@ -346,6 +360,26 @@ export default function MapboxGlobe() {
           longitude: center.lng,
           altitudeMeters: cameraHeightMeters,
         },
+      });
+    };
+
+    const centerFollowedEntity = (instant = false) => {
+      const { followEnabled, selectedEntity } = useWorldStore.getState();
+
+      if (!followEnabled || !selectedEntity || userInteracting) {
+        return;
+      }
+
+      const coordinates = entityPositionById.get(entityKeyForSelection(selectedEntity));
+      if (!coordinates) {
+        return;
+      }
+
+      map.easeTo({
+        center: coordinates,
+        zoom: Math.max(map.getZoom(), selectedEntity.kind === "satellite" ? 3.1 : 4.6),
+        duration: instant ? 0 : 900,
+        essential: true,
       });
     };
 
@@ -400,6 +434,7 @@ export default function MapboxGlobe() {
           history.push(coordinates);
           aircraftTrailById.set(entityId, history.slice(-24));
           entityById.set(entityId, entity);
+          entityPositionById.set(entityId, coordinates);
           features.push(createPointFeature(
             entityId,
             entity,
@@ -414,6 +449,7 @@ export default function MapboxGlobe() {
 
         setSourceData(map, AIRCRAFT_SOURCE_ID, pointCollection(features));
         redrawAircraftTrail();
+        centerFollowedEntity();
         warnedAircraftFailureRef.current = false;
         useWorldStore.getState().updateFeedStatus("aircraft", {
           online: true,
@@ -456,6 +492,7 @@ export default function MapboxGlobe() {
             };
             satelliteCatalogById.set(satellite.noradId, satellite);
             entityById.set(entityId, entity);
+            entityPositionById.set(entityId, [position.longitude, position.latitude]);
             features.push(createPointFeature(
               entityId,
               entity,
@@ -471,6 +508,7 @@ export default function MapboxGlobe() {
         const completedAt = performance.now();
         setSourceData(map, SATELLITE_SOURCE_ID, pointCollection(features));
         redrawSatelliteTrail();
+        centerFollowedEntity();
         warnedSatelliteFailureRef.current = false;
         useWorldStore.getState().updateFeedStatus("satellites", {
           online: true,
@@ -499,6 +537,7 @@ export default function MapboxGlobe() {
           metadata: formatGdeltEvent(event),
         };
         entityById.set(event.entityId, entity);
+        entityPositionById.set(event.entityId, [event.lon, event.lat]);
 
         return createPointFeature(
           event.entityId,
@@ -510,6 +549,7 @@ export default function MapboxGlobe() {
       const completedAt = performance.now();
 
       setSourceData(map, GDELT_SOURCE_ID, pointCollection(features));
+      centerFollowedEntity();
       useWorldStore.getState().updateFeedStatus("gdelt", {
         online: events.length > 0,
         count: events.length,
@@ -546,8 +586,10 @@ export default function MapboxGlobe() {
       }
 
       useWorldStore.getState().setSelectedEntity(entity);
+      useWorldStore.getState().setFollowEnabled(true);
       redrawAircraftTrail();
       redrawSatelliteTrail();
+      centerFollowedEntity();
     };
 
     const clearHover = () => {
@@ -622,6 +664,7 @@ export default function MapboxGlobe() {
 
       redrawAircraftTrail();
       redrawSatelliteTrail();
+      centerFollowedEntity(true);
     });
     const aircraftInterval = window.setInterval(updateAircraft, AIRCRAFT_REFRESH_INTERVAL_MS);
     const satelliteInterval = window.setInterval(updateSatellites, SATELLITE_UPDATE_INTERVAL_MS);
@@ -659,5 +702,11 @@ export default function MapboxGlobe() {
     );
   }
 
-  return <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-[#02070a]" />;
+  return (
+    <div className={`sensor-mode sensor-mode-${sensorMode} fixed inset-0 h-screen w-screen bg-[#02070a]`}>
+      <div ref={containerRef} className="h-full w-full" />
+      <div className="sensor-overlay pointer-events-none absolute inset-0" aria-hidden="true" />
+      <div className="sensor-reticle pointer-events-none absolute left-1/2 top-1/2 z-10 size-20 -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
+    </div>
+  );
 }

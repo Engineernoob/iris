@@ -10,6 +10,7 @@ import {
   PanelShell,
   StatusDot,
 } from "@/components/panelPrimitives";
+import type { SensorMode } from "@/store/useWorldStore";
 import type { LayerId } from "@/store/useWorldStore";
 import { useWorldStore } from "@/store/useWorldStore";
 
@@ -22,10 +23,20 @@ const layers: Array<{ id: LayerId; label: string; detail: string }> = [
   { id: "hud", label: "HUD", detail: "Mission readout overlay" },
 ];
 
+const sensorModes: Array<{ id: SensorMode; label: string }> = [
+  { id: "normal", label: "Normal" },
+  { id: "analyst", label: "Analyst" },
+  { id: "nvg", label: "NVG" },
+  { id: "thermal", label: "Thermal" },
+  { id: "crt", label: "CRT" },
+];
+
 function LayerPanel() {
-  const { activeLayers, toggleLayer, panelOpen, setPanelOpen } = useWorldStore(
+  const { activeLayers, sensorMode, setSensorMode, toggleLayer, panelOpen, setPanelOpen } = useWorldStore(
     useShallow((state) => ({
       activeLayers: state.activeLayers,
+      sensorMode: state.sensorMode,
+      setSensorMode: state.setSensorMode,
       toggleLayer: state.toggleLayer,
       panelOpen: state.panels.left,
       setPanelOpen: state.setPanelOpen,
@@ -67,6 +78,27 @@ function LayerPanel() {
         />
       </PanelHeader>
       <div className="p-2">
+        <div className="mb-2 grid grid-cols-2 gap-1.5 rounded-xl bg-white/[0.035] p-1 ring-1 ring-white/[0.06]">
+          {sensorModes.map((mode) => {
+            const active = sensorMode === mode.id;
+
+            return (
+              <button
+                key={mode.id}
+                type="button"
+                className={`min-h-8 rounded-lg px-2 text-[0.62rem] font-medium uppercase tracking-[0.13em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 ${
+                  active
+                    ? "bg-cyan-300/15 text-cyan-100 ring-1 ring-cyan-200/20"
+                    : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-100"
+                }`}
+                aria-pressed={active}
+                onClick={() => setSensorMode(mode.id)}
+              >
+                {mode.label}
+              </button>
+            );
+          })}
+        </div>
         {layers.map((layer) => {
           const active = activeLayers[layer.id];
 
