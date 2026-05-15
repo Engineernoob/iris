@@ -95,11 +95,11 @@ function InspectorPanel() {
           onClick={() => setPanelOpen("right", false)}
         />
       </PanelHeader>
-      <div className="p-4">
+      <div className="p-3">
         {selectedEntity && (
           <button
             type="button"
-            className={`mb-3 flex min-h-9 w-full items-center justify-between rounded-xl px-3 text-left text-[0.65rem] font-medium uppercase tracking-[0.14em] ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60 ${
+            className={`mb-3 flex min-h-10 w-full items-center justify-between rounded-xl px-3 text-left text-[0.65rem] font-medium uppercase tracking-[0.14em] ring-1 transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60 ${
               followEnabled
                 ? "bg-emerald-300/[0.1] text-emerald-100/80 ring-emerald-200/20"
                 : "bg-white/[0.04] text-slate-400 ring-white/[0.07] hover:bg-white/[0.06] hover:text-slate-100"
@@ -112,14 +112,21 @@ function InspectorPanel() {
           </button>
         )}
         {selectedEntity ? (
-          <div className="rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/[0.07]">
+          <div className="rounded-xl bg-white/[0.045] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-white/[0.075]">
             <div className="border-b border-white/[0.06] pb-3">
-              <p className="text-[0.66rem] uppercase tracking-[0.18em] text-slate-500">
-                {selectedEntity.kind}
-              </p>
-              <h3 className="mt-1 break-words font-mono text-sm text-cyan-50">{selectedEntity.name}</h3>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[0.66rem] uppercase tracking-[0.18em] text-slate-500">
+                    {selectedEntity.kind}
+                  </p>
+                  <h3 className="mt-1 break-words font-mono text-sm text-cyan-50">{selectedEntity.name}</h3>
+                </div>
+                <span className="rounded-full bg-cyan-300/10 px-2 py-1 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-cyan-100/75 ring-1 ring-cyan-200/15">
+                  locked
+                </span>
+              </div>
             </div>
-            <dl className="space-y-2.5">
+            <dl className="mt-3 space-y-2.5">
               {selectedEntity.metadata && selectedEntity.kind === "aircraft" ? (
                 aircraftFieldOrder.map(([key, label]) => (
                   <div key={key} className="flex items-start justify-between gap-4">
@@ -153,6 +160,17 @@ function InspectorPanel() {
                     </dd>
                   </div>
                 ))
+              ) : selectedEntity.metadata ? (
+                Object.entries(selectedEntity.metadata).map(([key, value]) => (
+                  <div key={key} className="flex items-start justify-between gap-4">
+                    <dt className="text-[0.65rem] uppercase tracking-wider text-slate-500">
+                      {key}
+                    </dt>
+                    <dd className="max-w-40 break-words text-right font-mono text-[0.7rem] tabular-nums text-slate-200/90">
+                      {String(value ?? "--")}
+                    </dd>
+                  </div>
+                ))
               ) : (
                 <>
                   <div className="flex items-center justify-between gap-4">
@@ -172,7 +190,7 @@ function InspectorPanel() {
             </dl>
           </div>
         ) : (
-          <div className="rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/[0.07]">
+          <div className="rounded-xl bg-white/[0.045] p-3 ring-1 ring-white/[0.075]">
             <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
               <div
                 className="relative grid size-10 place-items-center rounded-full bg-slate-900/80 ring-1 ring-white/[0.08]"
@@ -183,8 +201,8 @@ function InspectorPanel() {
                 <span className="absolute h-6 w-px bg-slate-500/50" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-200">No selection</p>
-                <p className="mt-0.5 text-[0.65rem] text-slate-500">Select an asset to inspect</p>
+                <p className="text-sm font-medium text-slate-200">No target lock</p>
+                <p className="mt-0.5 text-[0.65rem] text-slate-500">Select a live entity to inspect</p>
               </div>
             </div>
             <dl className="space-y-2.5">

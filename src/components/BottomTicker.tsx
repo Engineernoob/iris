@@ -11,16 +11,24 @@ function BottomTicker() {
   const {
     aircraftLayerActive,
     satellitesLayerActive,
+    earthquakesLayerActive,
     gdeltLayerActive,
+    humanitarianLayerActive,
+    imageryLayerActive,
     feeds,
+    followEnabled,
     cameraHeightMeters,
     selectedEntityName,
   } = useWorldStore(
     useShallow((state) => ({
       aircraftLayerActive: state.activeLayers.aircraft,
       satellitesLayerActive: state.activeLayers.satellites,
+      earthquakesLayerActive: state.activeLayers.earthquakes,
       gdeltLayerActive: state.activeLayers.gdelt,
+      humanitarianLayerActive: state.activeLayers.humanitarian,
+      imageryLayerActive: state.activeLayers.imagery,
       feeds: state.feeds,
+      followEnabled: state.followEnabled,
       cameraHeightMeters: state.globe.cameraHeightMeters,
       selectedEntityName: state.selectedEntity?.name ?? null,
     })),
@@ -32,12 +40,24 @@ function BottomTicker() {
       active: satellitesLayerActive,
     },
     {
+      label: earthquakesLayerActive ? `${feeds.earthquakes.count} quakes tracked` : "earthquake layer standby",
+      active: earthquakesLayerActive,
+    },
+    {
       label: gdeltLayerActive ? `${feeds.gdelt.count} events tracked` : "gdelt layer standby",
       active: gdeltLayerActive,
     },
     {
-      label: feeds.aircraft.online || feeds.satellites.online || feeds.gdelt.online ? "feed synced" : "feed acquiring",
-      active: feeds.aircraft.online || feeds.satellites.online || feeds.gdelt.online,
+      label: humanitarianLayerActive ? `${feeds.humanitarian.count} relief reports` : "reliefweb layer standby",
+      active: humanitarianLayerActive,
+    },
+    {
+      label: imageryLayerActive ? `${feeds.imagery.count} imagery footprints` : "imagery layer standby",
+      active: imageryLayerActive,
+    },
+    {
+      label: Object.values(feeds).some((feed) => feed.online) ? "feed synced" : "feed acquiring",
+      active: Object.values(feeds).some((feed) => feed.online),
     },
     { label: `camera altitude ${formatAltitude(cameraHeightMeters)}`, active: true },
     { label: `selected ${selectedEntityName ?? "none"}`, active: Boolean(selectedEntityName) },
@@ -45,9 +65,12 @@ function BottomTicker() {
 
   return (
     <footer className="absolute inset-x-0 bottom-0 z-30 px-3 pb-3 text-slate-300 sm:px-5">
-      <div className="mx-auto flex min-h-10 max-w-[1520px] items-center gap-3 overflow-hidden rounded-2xl bg-slate-950/50 px-3 shadow-[0_18px_70px_rgba(0,0,0,0.24),0_0_34px_rgba(14,165,233,0.05)] ring-1 ring-white/[0.09] backdrop-blur-2xl">
-        <div className="shrink-0 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-slate-400/75">
-          Telemetry
+      <div className="mx-auto flex min-h-11 max-w-[1520px] items-center gap-3 overflow-hidden rounded-2xl bg-slate-950/68 px-3 shadow-[0_18px_70px_rgba(0,0,0,0.3),0_0_34px_rgba(14,165,233,0.07)] ring-1 ring-white/[0.1] backdrop-blur-2xl">
+        <div className="shrink-0">
+          <p className="text-[0.58rem] font-medium uppercase tracking-[0.18em] text-slate-500">Telemetry</p>
+          <p className="font-mono text-[0.62rem] uppercase tracking-[0.11em] text-slate-300">
+            {followEnabled && selectedEntityName ? "Tracking" : "Wide scan"}
+          </p>
         </div>
         <div className="h-4 w-px shrink-0 bg-white/10" aria-hidden="true" />
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -58,7 +81,7 @@ function BottomTicker() {
         <div className="flex items-center gap-1.5">
           <StatusDot active={feeds.aircraft.online} tone="cyan" />
           <StatusDot active={feeds.satellites.online} tone="emerald" />
-          <StatusDot active={feeds.gdelt.online} tone="violet" />
+          <StatusDot active={feeds.earthquakes.online || feeds.gdelt.online || feeds.humanitarian.online || feeds.imagery.online} tone="violet" />
         </div>
       </div>
     </footer>

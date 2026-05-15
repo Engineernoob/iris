@@ -22,6 +22,7 @@ body {
 body {
   color: #e2f7ff;
   font-family: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  text-rendering: geometricPrecision;
 }
 
 button,
@@ -31,6 +32,17 @@ input {
 
 .sensor-mode {
   isolation: isolate;
+}
+
+.sensor-mode::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(103, 232, 249, 0.1), transparent 18%, transparent 82%, rgba(103, 232, 249, 0.08)),
+    radial-gradient(circle at center, transparent 0 58%, rgba(2, 7, 10, 0.32) 100%);
 }
 
 .sensor-mode .mapboxgl-canvas {

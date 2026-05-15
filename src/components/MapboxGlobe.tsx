@@ -14,8 +14,11 @@ import {
   toSatelliteEntityMetadata,
 } from "@/lib/entityUtils";
 import { fetchActiveSatelliteTles } from "@/lib/celestrak";
+import { fetchEarthquakeEvents, formatEarthquakeEvent } from "@/lib/earthquakes";
 import { fetchWithBackoff, warnFeedFailureOnce } from "@/lib/feedRetry";
 import { fetchGdeltEvents, formatGdeltEvent, getEventColor, getEventLabel } from "@/lib/gdelt";
+import { fetchHumanitarianReports, formatHumanitarianReport } from "@/lib/humanitarian";
+import { fetchImageryFootprints, formatImageryFootprint } from "@/lib/imagery";
 import type { AircraftState } from "@/lib/opensky";
 import { fetchAircraftStates } from "@/lib/opensky";
 import type { PropagatedSatellite, SatellitePosition } from "@/lib/satellitePropagation";
@@ -24,7 +27,7 @@ import {
   propagateSatellitePosition,
 } from "@/lib/satellitePropagation";
 import { useWorldStore, type SelectedEntity } from "@/store/useWorldStore";
-import type { Feature, FeatureCollection, LineString, Point } from "geojson";
+import type { Feature, FeatureCollection, LineString, Point, Polygon } from "geojson";
 
 const MAPBOX_TOKEN =
   process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
@@ -33,10 +36,22 @@ const DARK_STYLE = "mapbox://styles/mapbox/dark-v11";
 const AIRCRAFT_SOURCE_ID = "iris-aircraft";
 const SATELLITE_SOURCE_ID = "iris-satellites";
 const GDELT_SOURCE_ID = "iris-gdelt";
+const EARTHQUAKE_SOURCE_ID = "iris-earthquakes";
+const HUMANITARIAN_SOURCE_ID = "iris-humanitarian";
+const IMAGERY_SOURCE_ID = "iris-imagery";
 const AIRCRAFT_TRAIL_SOURCE_ID = "iris-aircraft-trail";
 const SATELLITE_TRAIL_SOURCE_ID = "iris-satellite-trail";
+const MARITIME_SOURCE_ID = "iris-maritime-density";
+const MARINE_CADASTRE_AIS_TILE_URL =
+  "https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/AISVesselTransitCounts2025/MapServer/tile/{z}/{y}/{x}";
 const GDELT_INTERVAL_MS = 60_000;
+const EARTHQUAKE_INTERVAL_MS = 300_000;
+const HUMANITARIAN_INTERVAL_MS = 900_000;
+const IMAGERY_INTERVAL_MS = 3_600_000;
 const MAX_GDELT_EVENTS = 50;
+const MAX_EARTHQUAKES = 80;
+const MAX_HUMANITARIAN_REPORTS = 40;
+const MAX_IMAGERY_FOOTPRINTS = 24;
 const AIRCRAFT_REFRESH_INTERVAL_MS = 30_000;
 const INITIAL_CAMERA_HEIGHT_METERS = 5_000_000;
 const MAX_RENDERED_AIRCRAFT = 80;
@@ -44,6 +59,7 @@ const MAX_RENDERED_SATELLITES = 30;
 const SATELLITE_UPDATE_INTERVAL_MS = 15_000;
 const EMPTY_POINTS: FeatureCollection<Point> = { type: "FeatureCollection", features: [] };
 const EMPTY_LINE: FeatureCollection<LineString> = { type: "FeatureCollection", features: [] };
+const EMPTY_POLYGONS: FeatureCollection<Polygon> = { type: "FeatureCollection", features: [] };
 
 type PointProperties = {
   entityId: string;
@@ -100,6 +116,10 @@ function lineCollection(coordinates: Array<[number, number]>): FeatureCollection
       },
     ],
   };
+}
+
+function polygonCollection(features: Array<Feature<Polygon, PointProperties>>): FeatureCollection<Polygon, PointProperties> {
+  return { type: "FeatureCollection", features };
 }
 
 function getSource(map: mapboxgl.Map, sourceId: string): GeoJSONSource | null {
@@ -183,8 +203,57 @@ function ensureMapLayers(map: mapboxgl.Map): void {
   addGeoJsonSource(map, AIRCRAFT_SOURCE_ID, EMPTY_POINTS);
   addGeoJsonSource(map, SATELLITE_SOURCE_ID, EMPTY_POINTS);
   addGeoJsonSource(map, GDELT_SOURCE_ID, EMPTY_POINTS);
+  addGeoJsonSource(map, EARTHQUAKE_SOURCE_ID, EMPTY_POINTS);
+  addGeoJsonSource(map, HUMANITARIAN_SOURCE_ID, EMPTY_POINTS);
+  addGeoJsonSource(map, IMAGERY_SOURCE_ID, EMPTY_POLYGONS);
   addGeoJsonSource(map, AIRCRAFT_TRAIL_SOURCE_ID, EMPTY_LINE);
   addGeoJsonSource(map, SATELLITE_TRAIL_SOURCE_ID, EMPTY_LINE);
+
+  if (!map.getSource(MARITIME_SOURCE_ID)) {
+    map.addSource(MARITIME_SOURCE_ID, {
+      type: "raster",
+      tiles: [MARINE_CADASTRE_AIS_TILE_URL],
+      tileSize: 256,
+    });
+  }
+
+  if (!map.getLayer("iris-maritime-density")) {
+    map.addLayer({
+      id: "iris-maritime-density",
+      source: MARITIME_SOURCE_ID,
+      type: "raster",
+      paint: {
+        "raster-opacity": 0.45,
+        "raster-saturation": 0.2,
+      },
+    });
+  }
+
+  if (!map.getLayer("iris-imagery-footprints")) {
+    map.addLayer({
+      id: "iris-imagery-footprints",
+      source: IMAGERY_SOURCE_ID,
+      type: "fill",
+      paint: {
+        "fill-color": "#f59e0b",
+        "fill-opacity": 0.14,
+        "fill-outline-color": "#fef3c7",
+      },
+    });
+  }
+
+  if (!map.getLayer("iris-imagery-outlines")) {
+    map.addLayer({
+      id: "iris-imagery-outlines",
+      source: IMAGERY_SOURCE_ID,
+      type: "line",
+      paint: {
+        "line-color": "#fbbf24",
+        "line-opacity": 0.8,
+        "line-width": 1.4,
+      },
+    });
+  }
 
   if (!map.getLayer("iris-aircraft-trail")) {
     map.addLayer({
@@ -223,6 +292,38 @@ function ensureMapLayers(map: mapboxgl.Map): void {
         "circle-opacity": 0.8,
         "circle-stroke-color": "#f8fafc",
         "circle-stroke-opacity": 0.45,
+        "circle-stroke-width": 1,
+      },
+    });
+  }
+
+  if (!map.getLayer("iris-earthquake-points")) {
+    map.addLayer({
+      id: "iris-earthquake-points",
+      source: EARTHQUAKE_SOURCE_ID,
+      type: "circle",
+      paint: {
+        "circle-color": ["get", "color"],
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.8, 5, 6, 10, 10],
+        "circle-opacity": 0.86,
+        "circle-stroke-color": "#fff7ed",
+        "circle-stroke-opacity": 0.7,
+        "circle-stroke-width": 1,
+      },
+    });
+  }
+
+  if (!map.getLayer("iris-humanitarian-points")) {
+    map.addLayer({
+      id: "iris-humanitarian-points",
+      source: HUMANITARIAN_SOURCE_ID,
+      type: "circle",
+      paint: {
+        "circle-color": "#fb7185",
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.8, 5, 5.5, 10, 9],
+        "circle-opacity": 0.82,
+        "circle-stroke-color": "#ffe4e6",
+        "circle-stroke-opacity": 0.64,
         "circle-stroke-width": 1,
       },
     });
@@ -301,6 +402,25 @@ function ensureMapLayers(map: mapboxgl.Map): void {
       },
     });
   }
+
+  if (!map.getLayer("iris-admin-boundaries") && map.getSource("composite")) {
+    try {
+      map.addLayer({
+        id: "iris-admin-boundaries",
+        source: "composite",
+        "source-layer": "admin",
+        type: "line",
+        filter: ["==", ["get", "admin_level"], 0],
+        paint: {
+          "line-color": "#cbd5e1",
+          "line-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.18, 5, 0.42],
+          "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.4, 5, 0.9],
+        },
+      });
+    } catch {
+      // Some Mapbox styles do not expose the admin source layer.
+    }
+  }
 }
 
 export default function MapboxGlobe() {
@@ -321,9 +441,11 @@ export default function MapboxGlobe() {
     const satelliteCatalogById = new Map<string, PropagatedSatellite>();
     const warnedAircraftFailureRef = { current: false };
     const warnedSatelliteFailureRef = { current: false };
+    const warnedEarthquakeFailureRef = { current: false };
+    const warnedHumanitarianFailureRef = { current: false };
+    const warnedImageryFailureRef = { current: false };
     let cancelled = false;
     let userInteracting = false;
-    let animationFrameId: number | null = null;
 
     const map = new mapboxgl.Map({
       container,
@@ -346,7 +468,13 @@ export default function MapboxGlobe() {
       setLayerVisibility(map, "iris-satellite-points", layers.satellites);
       setLayerVisibility(map, "iris-satellite-labels", layers.satellites);
       setLayerVisibility(map, "iris-satellite-trail", layers.satellites);
+      setLayerVisibility(map, "iris-earthquake-points", layers.earthquakes);
+      setLayerVisibility(map, "iris-maritime-density", layers.maritime);
       setLayerVisibility(map, "iris-gdelt-points", layers.gdelt);
+      setLayerVisibility(map, "iris-humanitarian-points", layers.humanitarian);
+      setLayerVisibility(map, "iris-admin-boundaries", layers.boundaries);
+      setLayerVisibility(map, "iris-imagery-footprints", layers.imagery);
+      setLayerVisibility(map, "iris-imagery-outlines", layers.imagery);
     };
 
     const updateTelemetry = () => {
@@ -558,10 +686,140 @@ export default function MapboxGlobe() {
       });
     };
 
+    const updateEarthquakes = async () => {
+      if (cancelled || !useWorldStore.getState().activeLayers.earthquakes) {
+        return;
+      }
+
+      try {
+        const startedAt = performance.now();
+        const events = await fetchEarthquakeEvents(MAX_EARTHQUAKES);
+        const features = events.map((event) => {
+          const entityId = `earthquake:${event.id}`;
+          const entity = {
+            id: event.id,
+            name: event.title,
+            kind: "earthquake" as const,
+            metadata: formatEarthquakeEvent(event),
+          };
+          entityById.set(entityId, entity);
+          entityPositionById.set(entityId, [event.longitude, event.latitude]);
+
+          const magnitude = event.magnitude ?? 0;
+
+          return createPointFeature(
+            entityId,
+            entity,
+            [event.longitude, event.latitude],
+            magnitude >= 5 ? "#f97316" : "#facc15",
+          );
+        });
+        const completedAt = performance.now();
+
+        setSourceData(map, EARTHQUAKE_SOURCE_ID, pointCollection(features));
+        useWorldStore.getState().updateFeedStatus("earthquakes", {
+          online: events.length > 0,
+          count: events.length,
+          latencyMs: Math.round(completedAt - startedAt),
+          updatedAt: new Date().toISOString(),
+        });
+        warnedEarthquakeFailureRef.current = false;
+      } catch (error) {
+        useWorldStore.getState().updateFeedStatus("earthquakes", { online: false });
+        warnFeedFailureOnce("USGS earthquakes", error, warnedEarthquakeFailureRef);
+      }
+    };
+
+    const updateHumanitarian = async () => {
+      if (cancelled || !useWorldStore.getState().activeLayers.humanitarian) {
+        return;
+      }
+
+      try {
+        const startedAt = performance.now();
+        const reports = await fetchHumanitarianReports(MAX_HUMANITARIAN_REPORTS);
+        const features = reports.map((report) => {
+          const entityId = `humanitarian:${report.id}`;
+          const entity = {
+            id: report.id,
+            name: report.title,
+            kind: "humanitarian" as const,
+            metadata: formatHumanitarianReport(report),
+          };
+          entityById.set(entityId, entity);
+          entityPositionById.set(entityId, [report.longitude, report.latitude]);
+
+          return createPointFeature(entityId, entity, [report.longitude, report.latitude], "#fb7185");
+        });
+        const completedAt = performance.now();
+
+        setSourceData(map, HUMANITARIAN_SOURCE_ID, pointCollection(features));
+        useWorldStore.getState().updateFeedStatus("humanitarian", {
+          online: reports.length > 0,
+          count: reports.length,
+          latencyMs: Math.round(completedAt - startedAt),
+          updatedAt: new Date().toISOString(),
+        });
+        warnedHumanitarianFailureRef.current = false;
+      } catch (error) {
+        useWorldStore.getState().updateFeedStatus("humanitarian", { online: false });
+        warnFeedFailureOnce("ReliefWeb humanitarian", error, warnedHumanitarianFailureRef);
+      }
+    };
+
+    const updateImagery = async () => {
+      if (cancelled || !useWorldStore.getState().activeLayers.imagery) {
+        return;
+      }
+
+      try {
+        const startedAt = performance.now();
+        const footprints = await fetchImageryFootprints(MAX_IMAGERY_FOOTPRINTS);
+        const features = footprints.map((footprint): Feature<Polygon, PointProperties> => {
+          const entityId = `imagery:${footprint.id}`;
+          const entity = {
+            id: footprint.id,
+            name: footprint.title,
+            kind: "imagery" as const,
+            metadata: formatImageryFootprint(footprint),
+          };
+          entityById.set(entityId, entity);
+
+          return {
+            type: "Feature",
+            id: entityId,
+            properties: {
+              entityId,
+              label: entity.name,
+              kind: entity.kind,
+              color: "#fbbf24",
+            },
+            geometry: footprint.geometry,
+          };
+        });
+        const completedAt = performance.now();
+
+        setSourceData(map, IMAGERY_SOURCE_ID, polygonCollection(features));
+        useWorldStore.getState().updateFeedStatus("imagery", {
+          online: footprints.length > 0,
+          count: footprints.length,
+          latencyMs: Math.round(completedAt - startedAt),
+          updatedAt: new Date().toISOString(),
+        });
+        warnedImageryFailureRef.current = false;
+      } catch (error) {
+        useWorldStore.getState().updateFeedStatus("imagery", { online: false });
+        warnFeedFailureOnce("NASA CMR imagery", error, warnedImageryFailureRef);
+      }
+    };
+
     const refreshAll = () => {
       void updateAircraft();
       void updateSatellites();
+      void updateEarthquakes();
       void updateGdelt();
+      void updateHumanitarian();
+      void updateImagery();
     };
 
     const handlePointerFeature = (event: MapLayerMouseEvent) => {
@@ -597,21 +855,6 @@ export default function MapboxGlobe() {
       useWorldStore.getState().setHoveredEntity(null, null);
     };
 
-    const startAutoRotate = () => {
-      let previous = performance.now();
-      const tick = (now: number) => {
-        if (!cancelled && useWorldStore.getState().activeLayers.hud && !userInteracting && !map.isMoving()) {
-          const elapsedSeconds = Math.min((now - previous) / 1000, 0.2);
-          const center = map.getCenter();
-          map.setCenter([center.lng - elapsedSeconds * 0.35, center.lat]);
-        }
-        previous = now;
-        animationFrameId = window.requestAnimationFrame(tick);
-      };
-
-      animationFrameId = window.requestAnimationFrame(tick);
-    };
-
     map.on("style.load", () => {
       map.setProjection("globe");
       map.setFog({
@@ -638,7 +881,14 @@ export default function MapboxGlobe() {
     });
 
     const registerInteractiveLayers = () => {
-      const interactiveLayers = ["iris-aircraft-points", "iris-satellite-points", "iris-gdelt-points"];
+      const interactiveLayers = [
+        "iris-aircraft-points",
+        "iris-satellite-points",
+        "iris-earthquake-points",
+        "iris-gdelt-points",
+        "iris-humanitarian-points",
+        "iris-imagery-footprints",
+      ];
       interactiveLayers.forEach((layerId) => {
         map.on("mousemove", layerId, handlePointerFeature);
         map.on("click", layerId, handleClickFeature);
@@ -669,6 +919,9 @@ export default function MapboxGlobe() {
     const aircraftInterval = window.setInterval(updateAircraft, AIRCRAFT_REFRESH_INTERVAL_MS);
     const satelliteInterval = window.setInterval(updateSatellites, SATELLITE_UPDATE_INTERVAL_MS);
     const gdeltInterval = window.setInterval(updateGdelt, GDELT_INTERVAL_MS);
+    const earthquakeInterval = window.setInterval(updateEarthquakes, EARTHQUAKE_INTERVAL_MS);
+    const humanitarianInterval = window.setInterval(updateHumanitarian, HUMANITARIAN_INTERVAL_MS);
+    const imageryInterval = window.setInterval(updateImagery, IMAGERY_INTERVAL_MS);
 
     map.once("load", () => {
       ensureMapLayers(map);
@@ -676,7 +929,6 @@ export default function MapboxGlobe() {
       syncLayerVisibility();
       updateTelemetry();
       refreshAll();
-      startAutoRotate();
     });
 
     return () => {
@@ -686,9 +938,9 @@ export default function MapboxGlobe() {
       window.clearInterval(aircraftInterval);
       window.clearInterval(satelliteInterval);
       window.clearInterval(gdeltInterval);
-      if (animationFrameId !== null) {
-        window.cancelAnimationFrame(animationFrameId);
-      }
+      window.clearInterval(earthquakeInterval);
+      window.clearInterval(humanitarianInterval);
+      window.clearInterval(imageryInterval);
       useWorldStore.getState().setHoveredEntity(null, null);
       map.remove();
     };

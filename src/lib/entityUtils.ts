@@ -58,6 +58,26 @@ function formatLastContact(lastContact: number | null): string {
   return new Date(lastContact * 1000).toISOString();
 }
 
+function formatPositionSource(source: number | null): string {
+  if (source === 0) {
+    return "ADS-B";
+  }
+
+  if (source === 1) {
+    return "ASTERIX";
+  }
+
+  if (source === 2) {
+    return "MLAT";
+  }
+
+  if (source === 3) {
+    return "FLARM";
+  }
+
+  return "--";
+}
+
 export function toAircraftEntityMetadata(
   aircraft: AircraftState,
 ): Record<string, string | number | boolean | null> {
@@ -68,8 +88,12 @@ export function toAircraftEntityMetadata(
     altitude: formatNullableMetric(aircraft.altitudeMeters, "m"),
     velocity: formatNullableMetric(aircraft.velocityMps, "m/s", 1),
     heading: formatNullableMetric(aircraft.headingDegrees, "deg", 0),
+    verticalRate: formatNullableMetric(aircraft.verticalRate, "m/s", 1),
+    squawk: aircraft.squawk || "--",
+    positionSource: formatPositionSource(aircraft.positionSource),
+    category: aircraft.category === null ? "--" : aircraft.category,
     lastContact: formatLastContact(aircraft.lastContact),
-    source: "OpenSky",
+    source: "OpenSky ADS-B",
   };
 }
 

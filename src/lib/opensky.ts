@@ -10,6 +10,9 @@ export type AircraftState = {
   verticalRate: number | null;
   onGround: boolean;
   lastContact: number | null;
+  squawk: string;
+  positionSource: number | null;
+  category: number | null;
 };
 
 type OpenSkyStateVector = [
@@ -73,6 +76,9 @@ export function normalizeOpenSkyStates(data: OpenSkyResponse): AircraftState[] {
         verticalRate: nullableNumber(state[11]),
         onGround: state[8] === true,
         lastContact: nullableNumber(state[4]),
+        squawk: stringValue(state[14]),
+        positionSource: nullableNumber(state[16]),
+        category: nullableNumber(state[17]),
       },
     ];
   });

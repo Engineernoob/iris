@@ -19,8 +19,8 @@ const openShadow: Record<Accent, string> = {
 };
 
 const panelShadow: Record<Accent, string> = {
-  cyan: "shadow-[0_20px_70px_rgba(0,0,0,0.28),0_0_34px_rgba(14,165,233,0.05)]",
-  emerald: "shadow-[0_20px_70px_rgba(0,0,0,0.28),0_0_34px_rgba(16,185,129,0.05)]",
+  cyan: "shadow-[0_22px_80px_rgba(0,0,0,0.34),0_0_42px_rgba(14,165,233,0.07)]",
+  emerald: "shadow-[0_22px_80px_rgba(0,0,0,0.34),0_0_42px_rgba(16,185,129,0.07)]",
 };
 
 const panelPosition: Record<PanelSide, string> = {
@@ -48,7 +48,7 @@ export function OpenPanelButton({
   return (
     <button
       type="button"
-      className={`absolute ${side}-4 top-20 z-20 flex min-h-11 items-center gap-2 rounded-xl bg-slate-950/60 px-3 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-100 ${openShadow[accent]} ring-1 ring-white/[0.09] backdrop-blur-xl transition-colors hover:bg-slate-900/75 focus-visible:outline-none focus-visible:ring-2 ${openFocusRing[accent]} ${className}`}
+      className={`absolute ${side}-4 top-20 z-20 flex min-h-11 items-center gap-2 rounded-xl bg-slate-950/70 px-3 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-100 ${openShadow[accent]} ring-1 ring-white/[0.1] backdrop-blur-2xl transition-colors hover:bg-slate-900/80 focus-visible:outline-none focus-visible:ring-2 ${openFocusRing[accent]} ${className}`}
       aria-expanded={false}
       aria-controls={controls}
       {...props}
@@ -79,7 +79,7 @@ export function PanelShell({
   return (
     <aside
       id={id}
-      className={`absolute ${panelPosition[side]} z-20 max-h-[calc(100dvh-8.5rem)] ${widthClassName} overflow-y-auto rounded-2xl bg-slate-950/52 text-slate-100 ${panelShadow[accent]} ring-1 ring-white/[0.09] backdrop-blur-2xl`}
+      className={`absolute ${panelPosition[side]} z-20 max-h-[calc(100dvh-8.5rem)] ${widthClassName} overflow-y-auto rounded-2xl bg-slate-950/68 text-slate-100 ${panelShadow[accent]} ring-1 ring-white/[0.11] backdrop-blur-2xl`}
       aria-labelledby={labelledBy}
     >
       {children}
@@ -96,12 +96,12 @@ type PanelHeaderProps = {
 
 export function PanelHeader({ eyebrow, title, titleId, children }: PanelHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5">
+    <div className="flex items-center justify-between border-b border-white/[0.06] px-4 pb-3 pt-3.5">
       <div>
         <p className="text-[0.6rem] font-medium uppercase tracking-widest text-slate-500">
           {eyebrow}
         </p>
-        <h2 id={titleId} className="mt-1 text-xs font-medium text-slate-200">
+        <h2 id={titleId} className="mt-1 text-xs font-medium text-slate-100">
           {title}
         </h2>
       </div>

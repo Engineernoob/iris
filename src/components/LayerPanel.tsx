@@ -10,15 +10,19 @@ import {
   PanelShell,
   StatusDot,
 } from "@/components/panelPrimitives";
-import type { SensorMode } from "@/store/useWorldStore";
-import type { LayerId } from "@/store/useWorldStore";
+import type { LayerId, SensorMode } from "@/store/useWorldStore";
 import { useWorldStore } from "@/store/useWorldStore";
 
 const layers: Array<{ id: LayerId; label: string; detail: string }> = [
   { id: "mapboxSatellite", label: "Mapbox Satellite", detail: "Satellite streets base layer" },
   { id: "aircraft", label: "Aircraft", detail: "ADS-B traffic overlay" },
   { id: "satellites", label: "Satellites", detail: "Orbital catalog tracks" },
+  { id: "earthquakes", label: "Earthquakes", detail: "USGS M2.5+ daily feed" },
+  { id: "maritime", label: "Maritime AIS", detail: "NOAA vessel density tiles" },
   { id: "gdelt", label: "GDELT Events", detail: "Global conflict & events" },
+  { id: "humanitarian", label: "ReliefWeb", detail: "Disaster and crisis reports" },
+  { id: "boundaries", label: "Boundaries", detail: "Admin context overlay" },
+  { id: "imagery", label: "Imagery Tasking", detail: "NASA HLS footprints" },
   { id: "terrain", label: "Terrain", detail: "Elevation occlusion model" },
   { id: "hud", label: "HUD", detail: "Mission readout overlay" },
 ];
@@ -30,6 +34,20 @@ const sensorModes: Array<{ id: SensorMode; label: string }> = [
   { id: "thermal", label: "Thermal" },
   { id: "crt", label: "CRT" },
 ];
+
+const layerTone: Record<LayerId, "cyan" | "emerald" | "violet"> = {
+  mapboxSatellite: "cyan",
+  aircraft: "cyan",
+  satellites: "emerald",
+  earthquakes: "emerald",
+  maritime: "cyan",
+  gdelt: "violet",
+  humanitarian: "violet",
+  boundaries: "cyan",
+  imagery: "emerald",
+  terrain: "emerald",
+  hud: "cyan",
+};
 
 function LayerPanel() {
   const { activeLayers, sensorMode, setSensorMode, toggleLayer, panelOpen, setPanelOpen } = useWorldStore(
@@ -78,7 +96,10 @@ function LayerPanel() {
         />
       </PanelHeader>
       <div className="p-2">
-        <div className="mb-2 grid grid-cols-2 gap-1.5 rounded-xl bg-white/[0.035] p-1 ring-1 ring-white/[0.06]">
+        <div className="px-2 pb-1 text-[0.58rem] font-medium uppercase tracking-[0.18em] text-slate-500">
+          Sensor profile
+        </div>
+        <div className="mb-3 grid grid-cols-2 gap-1.5 rounded-xl bg-white/[0.04] p-1 ring-1 ring-white/[0.07]">
           {sensorModes.map((mode) => {
             const active = sensorMode === mode.id;
 
@@ -86,7 +107,7 @@ function LayerPanel() {
               <button
                 key={mode.id}
                 type="button"
-                className={`min-h-8 rounded-lg px-2 text-[0.62rem] font-medium uppercase tracking-[0.13em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 ${
+                className={`min-h-9 rounded-lg px-2 text-[0.62rem] font-medium uppercase tracking-[0.13em] transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 ${
                   active
                     ? "bg-cyan-300/15 text-cyan-100 ring-1 ring-cyan-200/20"
                     : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-100"
@@ -99,6 +120,9 @@ function LayerPanel() {
             );
           })}
         </div>
+        <div className="px-2 pb-1 text-[0.58rem] font-medium uppercase tracking-[0.18em] text-slate-500">
+          Feeds and overlays
+        </div>
         {layers.map((layer) => {
           const active = activeLayers[layer.id];
 
@@ -106,12 +130,12 @@ function LayerPanel() {
             <button
               key={layer.id}
               type="button"
-              className="group grid min-h-12 w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 active:scale-[0.99]"
+              className="group grid min-h-12 w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-white/[0.055] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 active:scale-[0.96]"
               onClick={() => toggleLayer(layer.id)}
               aria-pressed={active}
               aria-label={`${active ? "Disable" : "Enable"} ${layer.label} layer`}
             >
-              <StatusDot active={active} tone="cyan" />
+              <StatusDot active={active} tone={layerTone[layer.id]} glow />
               <span className="min-w-0">
                 <span className="block truncate text-[0.8rem] font-medium text-slate-100">{layer.label}</span>
                 <span className="mt-0.5 block truncate text-[0.68rem] text-slate-400/75">

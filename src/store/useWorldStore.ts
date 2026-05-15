@@ -1,6 +1,17 @@
 import { create } from "zustand";
 
-export type LayerId = "mapboxSatellite" | "aircraft" | "satellites" | "gdelt" | "terrain" | "hud";
+export type LayerId =
+  | "mapboxSatellite"
+  | "aircraft"
+  | "satellites"
+  | "earthquakes"
+  | "maritime"
+  | "gdelt"
+  | "humanitarian"
+  | "boundaries"
+  | "imagery"
+  | "terrain"
+  | "hud";
 export type SensorMode = "normal" | "nvg" | "thermal" | "crt" | "analyst";
 
 const DEFAULT_CAMERA_HEIGHT_METERS = 5_000_000;
@@ -8,7 +19,7 @@ const DEFAULT_CAMERA_HEIGHT_METERS = 5_000_000;
 export type SelectedEntity = {
   id: string;
   name: string;
-  kind: "aircraft" | "satellite" | "terrain" | "gdelt" | "unknown";
+  kind: "aircraft" | "satellite" | "terrain" | "gdelt" | "earthquake" | "humanitarian" | "imagery" | "unknown";
   metadata?: Record<string, string | number | boolean | null>;
 } | null;
 
@@ -36,7 +47,10 @@ type FeedChannelStatus = {
 type FeedStatus = {
   aircraft: FeedChannelStatus;
   satellites: FeedChannelStatus;
+  earthquakes: FeedChannelStatus;
   gdelt: FeedChannelStatus;
+  humanitarian: FeedChannelStatus;
+  imagery: FeedChannelStatus;
 };
 
 type WorldState = {
@@ -67,7 +81,12 @@ export const useWorldStore = create<WorldState>((set) => ({
     mapboxSatellite: true,
     aircraft: true,
     satellites: true,
+    earthquakes: true,
+    maritime: false,
     gdelt: false,
+    humanitarian: false,
+    boundaries: true,
+    imagery: false,
     terrain: false,
     hud: true,
   },
@@ -98,7 +117,25 @@ export const useWorldStore = create<WorldState>((set) => ({
       latencyMs: null,
       updatedAt: null,
     },
+    earthquakes: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
+    },
     gdelt: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
+    },
+    humanitarian: {
+      online: false,
+      count: 0,
+      latencyMs: null,
+      updatedAt: null,
+    },
+    imagery: {
       online: false,
       count: 0,
       latencyMs: null,
