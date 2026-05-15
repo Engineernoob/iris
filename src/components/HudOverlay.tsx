@@ -14,8 +14,10 @@ function formatCoordinate(value: number, positive: string, negative: string): st
 
 function HudOverlay() {
   const [utcTime, setUtcTime] = useState("---- -- -- --:--:-- UTC");
-  const { hudEnabled, globe } = useWorldStore(
+  const { activeLayers, feeds, hudEnabled, globe } = useWorldStore(
     useShallow((state) => ({
+      activeLayers: state.activeLayers,
+      feeds: state.feeds,
       hudEnabled: state.activeLayers.hud,
       globe: state.globe,
     })),
@@ -41,6 +43,14 @@ function HudOverlay() {
         "W",
       )}`
     : "Acquiring...";
+  const legendItems = [
+    { label: "Aircraft", shortLabel: "AIR", active: activeLayers.aircraft, count: feeds.aircraft.count, tone: "bg-cyan-200" },
+    { label: "Satellites", shortLabel: "SAT", active: activeLayers.satellites, count: feeds.satellites.count, tone: "bg-emerald-200" },
+    { label: "Quakes", shortLabel: "EQ", active: activeLayers.earthquakes, count: feeds.earthquakes.count, tone: "bg-amber-200" },
+    { label: "Events", shortLabel: "GEO", active: activeLayers.gdelt, count: feeds.gdelt.count, tone: "bg-violet-200" },
+    { label: "Relief", shortLabel: "REL", active: activeLayers.humanitarian, count: feeds.humanitarian.count, tone: "bg-rose-200" },
+    { label: "Imagery", shortLabel: "IMG", active: activeLayers.imagery, count: feeds.imagery.count, tone: "bg-orange-200" },
+  ].filter((item) => item.active);
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 text-slate-100" aria-label="Globe telemetry overlay">
@@ -76,6 +86,17 @@ function HudOverlay() {
       <div className="absolute right-5 top-20 rounded-full bg-slate-950/48 px-3 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.11em] text-slate-200/90 ring-1 ring-white/[0.08] backdrop-blur-xl sm:right-6">
         {utcTime}
       </div>
+      {legendItems.length > 0 && (
+        <div className="absolute bottom-32 left-5 hidden w-44 rounded-2xl bg-slate-950/48 p-2 font-mono text-[0.6rem] uppercase tracking-[0.1em] text-slate-300/85 ring-1 ring-white/[0.08] backdrop-blur-xl lg:block">
+          {legendItems.map((item) => (
+            <div key={item.shortLabel} className="grid h-7 grid-cols-[1.5rem_1fr_auto] items-center gap-2">
+              <span className={`size-2.5 rounded-[3px] ${item.tone} shadow-[0_0_14px_currentColor]`} aria-hidden="true" />
+              <span className="truncate">{item.label}</span>
+              <span className="tabular-nums text-slate-500">{String(item.count).padStart(2, "0")}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -65,7 +65,19 @@ type PointProperties = {
   entityId: string;
   label: string;
   color: string;
+  icon: string;
+  rotation: number;
   kind: NonNullable<SelectedEntity>["kind"];
+};
+
+type DataSourceIcon = "aircraft" | "satellite" | "earthquake" | "gdelt" | "humanitarian";
+
+const dataSourceIconId: Record<DataSourceIcon, string> = {
+  aircraft: "iris-icon-aircraft",
+  satellite: "iris-icon-satellite",
+  earthquake: "iris-icon-earthquake",
+  gdelt: "iris-icon-gdelt",
+  humanitarian: "iris-icon-humanitarian",
 };
 
 function selectedEntityIdForKind(kind: "aircraft" | "satellite"): string | null {
@@ -122,6 +134,119 @@ function polygonCollection(features: Array<Feature<Polygon, PointProperties>>): 
   return { type: "FeatureCollection", features };
 }
 
+function createIconImageData(icon: DataSourceIcon, color: string): ImageData {
+  const canvas = document.createElement("canvas");
+  const size = 64;
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Could not create map icon canvas");
+  }
+
+  context.clearRect(0, 0, size, size);
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  context.shadowColor = color;
+  context.shadowBlur = 10;
+  context.strokeStyle = color;
+  context.fillStyle = color;
+  context.lineWidth = 4;
+
+  if (icon === "aircraft") {
+    context.beginPath();
+    context.moveTo(32, 8);
+    context.lineTo(39, 30);
+    context.lineTo(56, 38);
+    context.lineTo(54, 45);
+    context.lineTo(37, 41);
+    context.lineTo(35, 55);
+    context.lineTo(29, 55);
+    context.lineTo(27, 41);
+    context.lineTo(10, 45);
+    context.lineTo(8, 38);
+    context.lineTo(25, 30);
+    context.closePath();
+    context.fill();
+    return context.getImageData(0, 0, size, size);
+  }
+
+  if (icon === "satellite") {
+    context.save();
+    context.translate(32, 32);
+    context.rotate(-Math.PI / 5);
+    context.fillRect(-8, -8, 16, 16);
+    context.strokeRect(-27, -7, 13, 14);
+    context.strokeRect(14, -7, 13, 14);
+    context.beginPath();
+    context.moveTo(-14, 0);
+    context.lineTo(-8, 0);
+    context.moveTo(8, 0);
+    context.lineTo(14, 0);
+    context.stroke();
+    context.restore();
+    return context.getImageData(0, 0, size, size);
+  }
+
+  if (icon === "earthquake") {
+    context.beginPath();
+    context.moveTo(32, 7);
+    context.lineTo(56, 32);
+    context.lineTo(32, 57);
+    context.lineTo(8, 32);
+    context.closePath();
+    context.stroke();
+    context.beginPath();
+    context.moveTo(23, 18);
+    context.lineTo(34, 30);
+    context.lineTo(27, 33);
+    context.lineTo(41, 47);
+    context.stroke();
+    return context.getImageData(0, 0, size, size);
+  }
+
+  if (icon === "humanitarian") {
+    context.fillRect(26, 10, 12, 44);
+    context.fillRect(10, 26, 44, 12);
+    return context.getImageData(0, 0, size, size);
+  }
+
+  context.beginPath();
+  context.moveTo(32, 9);
+  context.lineTo(55, 22);
+  context.lineTo(55, 43);
+  context.lineTo(32, 56);
+  context.lineTo(9, 43);
+  context.lineTo(9, 22);
+  context.closePath();
+  context.stroke();
+  context.beginPath();
+  context.moveTo(21, 32);
+  context.lineTo(30, 41);
+  context.lineTo(44, 23);
+  context.stroke();
+
+  return context.getImageData(0, 0, size, size);
+}
+
+function ensureDataSourceIcons(map: mapboxgl.Map): void {
+  const icons: Array<[DataSourceIcon, string]> = [
+    ["aircraft", "#67e8f9"],
+    ["satellite", "#a7f3d0"],
+    ["earthquake", "#facc15"],
+    ["gdelt", "#c084fc"],
+    ["humanitarian", "#fb7185"],
+  ];
+
+  icons.forEach(([icon, color]) => {
+    const imageId = dataSourceIconId[icon];
+    if (!map.hasImage(imageId)) {
+      map.addImage(imageId, createIconImageData(icon, color), { pixelRatio: 2 });
+    }
+  });
+}
+
 function getSource(map: mapboxgl.Map, sourceId: string): GeoJSONSource | null {
   return (map.getSource(sourceId) as GeoJSONSource | undefined) ?? null;
 }
@@ -163,6 +288,8 @@ function createPointFeature(
   entity: SelectedEntity,
   coordinates: [number, number],
   color: string,
+  icon: DataSourceIcon,
+  rotation = 0,
 ): Feature<Point, PointProperties> {
   if (!entity) {
     throw new Error("Cannot create map feature without an entity");
@@ -176,6 +303,8 @@ function createPointFeature(
       label: entity.name,
       kind: entity.kind,
       color,
+      icon: dataSourceIconId[icon],
+      rotation,
     },
     geometry: {
       type: "Point",
@@ -200,6 +329,7 @@ function setLayerVisibility(map: mapboxgl.Map, layerId: string, visible: boolean
 }
 
 function ensureMapLayers(map: mapboxgl.Map): void {
+  ensureDataSourceIcons(map);
   addGeoJsonSource(map, AIRCRAFT_SOURCE_ID, EMPTY_POINTS);
   addGeoJsonSource(map, SATELLITE_SOURCE_ID, EMPTY_POINTS);
   addGeoJsonSource(map, GDELT_SOURCE_ID, EMPTY_POINTS);
@@ -285,14 +415,15 @@ function ensureMapLayers(map: mapboxgl.Map): void {
     map.addLayer({
       id: "iris-gdelt-points",
       source: GDELT_SOURCE_ID,
-      type: "circle",
+      type: "symbol",
+      layout: {
+        "icon-image": ["get", "icon"],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0.38, 5, 0.54, 10, 0.72],
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
       paint: {
-        "circle-color": ["get", "color"],
-        "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.5, 5, 5, 10, 8],
-        "circle-opacity": 0.8,
-        "circle-stroke-color": "#f8fafc",
-        "circle-stroke-opacity": 0.45,
-        "circle-stroke-width": 1,
+        "icon-opacity": 0.9,
       },
     });
   }
@@ -301,14 +432,15 @@ function ensureMapLayers(map: mapboxgl.Map): void {
     map.addLayer({
       id: "iris-earthquake-points",
       source: EARTHQUAKE_SOURCE_ID,
-      type: "circle",
+      type: "symbol",
+      layout: {
+        "icon-image": ["get", "icon"],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0.42, 5, 0.62, 10, 0.84],
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
       paint: {
-        "circle-color": ["get", "color"],
-        "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.8, 5, 6, 10, 10],
-        "circle-opacity": 0.86,
-        "circle-stroke-color": "#fff7ed",
-        "circle-stroke-opacity": 0.7,
-        "circle-stroke-width": 1,
+        "icon-opacity": 0.92,
       },
     });
   }
@@ -317,14 +449,15 @@ function ensureMapLayers(map: mapboxgl.Map): void {
     map.addLayer({
       id: "iris-humanitarian-points",
       source: HUMANITARIAN_SOURCE_ID,
-      type: "circle",
+      type: "symbol",
+      layout: {
+        "icon-image": ["get", "icon"],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0.38, 5, 0.58, 10, 0.78],
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
       paint: {
-        "circle-color": "#fb7185",
-        "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.8, 5, 5.5, 10, 9],
-        "circle-opacity": 0.82,
-        "circle-stroke-color": "#ffe4e6",
-        "circle-stroke-opacity": 0.64,
-        "circle-stroke-width": 1,
+        "icon-opacity": 0.9,
       },
     });
   }
@@ -333,14 +466,15 @@ function ensureMapLayers(map: mapboxgl.Map): void {
     map.addLayer({
       id: "iris-satellite-points",
       source: SATELLITE_SOURCE_ID,
-      type: "circle",
+      type: "symbol",
+      layout: {
+        "icon-image": ["get", "icon"],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0.34, 5, 0.5, 10, 0.68],
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
       paint: {
-        "circle-color": "#a7f3d0",
-        "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.2, 5, 4, 10, 7],
-        "circle-opacity": 0.9,
-        "circle-stroke-color": "#ecfeff",
-        "circle-stroke-opacity": 0.65,
-        "circle-stroke-width": 1,
+        "icon-opacity": 0.94,
       },
     });
   }
@@ -349,14 +483,17 @@ function ensureMapLayers(map: mapboxgl.Map): void {
     map.addLayer({
       id: "iris-aircraft-points",
       source: AIRCRAFT_SOURCE_ID,
-      type: "circle",
+      type: "symbol",
+      layout: {
+        "icon-image": ["get", "icon"],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 0, 0.34, 5, 0.55, 10, 0.78],
+        "icon-rotate": ["get", "rotation"],
+        "icon-rotation-alignment": "map",
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
       paint: {
-        "circle-color": ["get", "color"],
-        "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 2.5, 5, 4.5, 10, 7],
-        "circle-opacity": 0.92,
-        "circle-stroke-color": "#ecfeff",
-        "circle-stroke-opacity": 0.65,
-        "circle-stroke-width": 1,
+        "icon-opacity": 0.95,
       },
     });
   }
@@ -568,6 +705,8 @@ export default function MapboxGlobe() {
             entity,
             coordinates,
             getAircraftVisualColor(getAircraftVisualState(aircraft)),
+            "aircraft",
+            aircraft.headingDegrees ?? 0,
           ));
         });
 
@@ -626,6 +765,7 @@ export default function MapboxGlobe() {
               entity,
               [position.longitude, position.latitude],
               position.altitudeKm < 2_000 ? "#a7f3d0" : "#6ee7b7",
+              "satellite",
             ));
           });
 
@@ -672,6 +812,7 @@ export default function MapboxGlobe() {
           entity,
           [event.lon, event.lat],
           getEventColor(event.eventBaseCode),
+          "gdelt",
         );
       });
       const completedAt = performance.now();
@@ -712,6 +853,7 @@ export default function MapboxGlobe() {
             entity,
             [event.longitude, event.latitude],
             magnitude >= 5 ? "#f97316" : "#facc15",
+            "earthquake",
           );
         });
         const completedAt = performance.now();
@@ -749,7 +891,13 @@ export default function MapboxGlobe() {
           entityById.set(entityId, entity);
           entityPositionById.set(entityId, [report.longitude, report.latitude]);
 
-          return createPointFeature(entityId, entity, [report.longitude, report.latitude], "#fb7185");
+          return createPointFeature(
+            entityId,
+            entity,
+            [report.longitude, report.latitude],
+            "#fb7185",
+            "humanitarian",
+          );
         });
         const completedAt = performance.now();
 
@@ -793,6 +941,8 @@ export default function MapboxGlobe() {
               label: entity.name,
               kind: entity.kind,
               color: "#fbbf24",
+              icon: dataSourceIconId.gdelt,
+              rotation: 0,
             },
             geometry: footprint.geometry,
           };
