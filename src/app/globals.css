@@ -22,6 +22,8 @@ body {
 body {
   color: #e2f7ff;
   font-family: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
   text-rendering: geometricPrecision;
 }
 

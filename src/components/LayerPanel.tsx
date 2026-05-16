@@ -68,7 +68,7 @@ function LayerPanel() {
         side="left"
         controls="iris-layer-panel"
         icon={
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         }
@@ -85,7 +85,7 @@ function LayerPanel() {
       labelledBy="iris-layer-panel-title"
       accent="cyan"
       side="left"
-      widthClassName="w-[min(18rem,calc(100vw-1.5rem))] sm:w-[18rem]"
+      widthClassName="w-[min(18.5rem,calc(100vw-1.5rem))] sm:w-[18.5rem]"
     >
       <PanelHeader eyebrow="Layers" title="Mission visibility" titleId="iris-layer-panel-title">
         <PanelCollapseButton
@@ -95,11 +95,11 @@ function LayerPanel() {
           onClick={() => setPanelOpen("left", false)}
         />
       </PanelHeader>
-      <div className="p-2">
-        <div className="px-2 pb-1 text-[0.58rem] font-medium uppercase tracking-[0.18em] text-slate-500">
+      <div className="p-2.5">
+        <div className="px-1.5 pb-1.5 text-[0.58rem] font-medium uppercase tracking-[0.17em] text-slate-500">
           Sensor profile
         </div>
-        <div className="mb-3 grid grid-cols-2 gap-1.5 rounded-xl bg-white/[0.04] p-1 ring-1 ring-white/[0.07]">
+        <div className="mb-4 grid grid-cols-2 gap-1.5 rounded-2xl bg-white/[0.04] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] ring-1 ring-white/[0.065]">
           {sensorModes.map((mode) => {
             const active = sensorMode === mode.id;
 
@@ -107,10 +107,10 @@ function LayerPanel() {
               <button
                 key={mode.id}
                 type="button"
-                className={`min-h-9 rounded-lg px-2 text-[0.62rem] font-medium uppercase tracking-[0.13em] transition-colors active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 ${
+                className={`min-h-9 rounded-xl px-2 text-[0.62rem] font-medium uppercase tracking-[0.12em] transition-[background-color,color,scale] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 ${
                   active
-                    ? "bg-cyan-300/15 text-cyan-100 ring-1 ring-cyan-200/20"
-                    : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-100"
+                    ? "bg-cyan-300/14 text-cyan-50 shadow-[0_0_18px_rgba(34,211,238,0.08)] ring-1 ring-cyan-200/18"
+                    : "text-slate-400 hover:bg-white/[0.055] hover:text-slate-100"
                 }`}
                 aria-pressed={active}
                 onClick={() => setSensorMode(mode.id)}
@@ -120,9 +120,10 @@ function LayerPanel() {
             );
           })}
         </div>
-        <div className="px-2 pb-1 text-[0.58rem] font-medium uppercase tracking-[0.18em] text-slate-500">
+        <div className="px-1.5 pb-1.5 text-[0.58rem] font-medium uppercase tracking-[0.17em] text-slate-500">
           Feeds and overlays
         </div>
+        <div className="space-y-1">
         {layers.map((layer) => {
           const active = activeLayers[layer.id];
 
@@ -130,21 +131,23 @@ function LayerPanel() {
             <button
               key={layer.id}
               type="button"
-              className="group grid min-h-12 w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-white/[0.055] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 active:scale-[0.96]"
+              className={`group grid min-h-12 w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl px-2.5 py-2 text-left transition-[background-color,scale] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/55 active:scale-[0.96] ${
+                active ? "bg-white/[0.045] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]" : "hover:bg-white/[0.045]"
+              }`}
               onClick={() => toggleLayer(layer.id)}
               aria-pressed={active}
               aria-label={`${active ? "Disable" : "Enable"} ${layer.label} layer`}
             >
               <StatusDot active={active} tone={layerTone[layer.id]} glow />
               <span className="min-w-0">
-                <span className="block truncate text-[0.8rem] font-medium text-slate-100">{layer.label}</span>
+                <span className="block truncate text-[0.78rem] font-medium text-slate-100">{layer.label}</span>
                 <span className="mt-0.5 block truncate text-[0.68rem] text-slate-400/75">
                   {layer.detail}
                 </span>
               </span>
               <span
                 className={`h-5 w-9 rounded-full p-0.5 ring-1 transition-colors ${
-                  active ? "bg-cyan-300/15 ring-cyan-200/20" : "bg-white/[0.04] ring-white/[0.08]"
+                  active ? "bg-cyan-300/16 ring-cyan-200/20" : "bg-white/[0.035] ring-white/[0.08]"
                 }`}
                 aria-hidden="true"
               >
@@ -157,6 +160,7 @@ function LayerPanel() {
             </button>
           );
         })}
+        </div>
       </div>
     </PanelShell>
   );

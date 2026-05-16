@@ -14,8 +14,8 @@ const openFocusRing: Record<Accent, string> = {
 };
 
 const openShadow: Record<Accent, string> = {
-  cyan: "shadow-[0_16px_50px_rgba(0,0,0,0.24),0_0_30px_rgba(14,165,233,0.05)]",
-  emerald: "shadow-[0_16px_50px_rgba(0,0,0,0.24),0_0_30px_rgba(16,185,129,0.05)]",
+  cyan: "shadow-[0_14px_46px_rgba(0,0,0,0.26),0_0_24px_rgba(14,165,233,0.05)]",
+  emerald: "shadow-[0_14px_46px_rgba(0,0,0,0.26),0_0_24px_rgba(16,185,129,0.05)]",
 };
 
 const panelShadow: Record<Accent, string> = {
@@ -24,7 +24,7 @@ const panelShadow: Record<Accent, string> = {
 };
 
 const panelPosition: Record<PanelSide, string> = {
-  left: "left-3 top-20 sm:left-4",
+  left: "left-3 top-20 sm:left-5",
   right: "right-3 top-[22rem] sm:right-4 lg:top-20",
 };
 
@@ -48,13 +48,13 @@ export function OpenPanelButton({
   return (
     <button
       type="button"
-      className={`absolute ${side}-4 top-20 z-20 flex min-h-11 items-center gap-2 rounded-xl bg-slate-950/70 px-3 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-100 ${openShadow[accent]} ring-1 ring-white/[0.1] backdrop-blur-2xl transition-colors hover:bg-slate-900/80 focus-visible:outline-none focus-visible:ring-2 ${openFocusRing[accent]} ${className}`}
+      className={`absolute ${side}-5 top-20 z-20 grid size-11 place-items-center rounded-2xl bg-slate-950/62 text-slate-200 ${openShadow[accent]} ring-1 ring-white/[0.1] backdrop-blur-2xl transition-[background-color,color,scale] hover:bg-slate-900/78 hover:text-white focus-visible:outline-none focus-visible:ring-2 ${openFocusRing[accent]} active:scale-[0.96] ${className}`}
       aria-expanded={false}
       aria-controls={controls}
       {...props}
     >
       {icon}
-      {children}
+      <span className="sr-only">{children}</span>
     </button>
   );
 }
@@ -79,7 +79,7 @@ export function PanelShell({
   return (
     <aside
       id={id}
-      className={`absolute ${panelPosition[side]} z-20 max-h-[calc(100dvh-8.5rem)] ${widthClassName} overflow-y-auto rounded-2xl bg-slate-950/68 text-slate-100 ${panelShadow[accent]} ring-1 ring-white/[0.11] backdrop-blur-2xl`}
+      className={`absolute ${panelPosition[side]} z-20 max-h-[calc(100dvh-8.5rem)] ${widthClassName} overflow-y-auto rounded-2xl bg-slate-950/72 text-slate-100 ${panelShadow[accent]} ring-1 ring-white/[0.1] backdrop-blur-2xl`}
       aria-labelledby={labelledBy}
     >
       {children}
@@ -96,12 +96,12 @@ type PanelHeaderProps = {
 
 export function PanelHeader({ eyebrow, title, titleId, children }: PanelHeaderProps) {
   return (
-    <div className="flex items-center justify-between border-b border-white/[0.06] px-4 pb-3 pt-3.5">
+    <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5 shadow-[inset_0_-1px_0_rgba(255,255,255,0.055)]">
       <div>
         <p className="text-[0.6rem] font-medium uppercase tracking-widest text-slate-500">
           {eyebrow}
         </p>
-        <h2 id={titleId} className="mt-1 text-xs font-medium text-slate-100">
+        <h2 id={titleId} className="mt-1 text-[0.82rem] font-medium text-slate-100">
           {title}
         </h2>
       </div>
@@ -124,7 +124,7 @@ export function PanelCollapseButton({
   return (
     <button
       type="button"
-      className={`grid size-10 place-items-center rounded-xl text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 ${collapseFocusRing[accent]} active:scale-[0.96] ${className}`}
+      className={`grid size-10 place-items-center rounded-xl text-slate-400 transition-[background-color,color,scale] hover:bg-white/[0.06] hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 ${collapseFocusRing[accent]} active:scale-[0.96] ${className}`}
       aria-expanded={true}
       aria-controls={controls}
       {...props}
@@ -165,7 +165,7 @@ type TelemetryPillProps = {
 
 export function TelemetryPill({ label, active }: TelemetryPillProps) {
   return (
-    <span className="inline-flex h-6 shrink-0 items-center gap-2 rounded-full bg-white/[0.045] px-2.5 font-mono text-[0.65rem] uppercase tracking-[0.11em] text-slate-300/85 ring-1 ring-white/[0.07]">
+    <span className="inline-flex h-6 shrink-0 items-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 font-mono text-[0.6rem] uppercase tracking-[0.095em] text-slate-300/82 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] ring-1 ring-white/[0.06]">
       <StatusDot active={active} size="xs" glow />
       {label}
     </span>

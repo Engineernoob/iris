@@ -7,6 +7,12 @@ import { StatusDot, TelemetryPill } from "@/components/panelPrimitives";
 import { formatAltitude } from "@/lib/format";
 import { useWorldStore } from "@/store/useWorldStore";
 
+type TickerItem = {
+  label: string;
+  active: boolean;
+  priority: "primary" | "secondary" | "detail";
+};
+
 function BottomTicker() {
   const {
     aircraftLayerActive,
@@ -33,55 +39,95 @@ function BottomTicker() {
       selectedEntityName: state.selectedEntity?.name ?? null,
     })),
   );
-  const visibleTickerItems = [
-    { label: aircraftLayerActive ? `${feeds.aircraft.count} aircraft tracked` : "aircraft layer standby", active: aircraftLayerActive },
+  const feedOnline = Object.values(feeds).some((feed) => feed.online);
+  const tickerItems: TickerItem[] = [
+    { label: `${feeds.aircraft.count} aircraft`, active: aircraftLayerActive, priority: "primary" },
     {
-      label: satellitesLayerActive ? `${feeds.satellites.count} satellites tracked` : "satellite layer standby",
+      label: `${feeds.satellites.count} satellites`,
       active: satellitesLayerActive,
+      priority: "primary",
     },
     {
-      label: earthquakesLayerActive ? `${feeds.earthquakes.count} quakes tracked` : "earthquake layer standby",
+      label: `${feeds.earthquakes.count} quakes`,
       active: earthquakesLayerActive,
+      priority: "primary",
     },
     {
-      label: gdeltLayerActive ? `${feeds.gdelt.count} events tracked` : "gdelt layer standby",
+      label: `${feeds.gdelt.count} events`,
       active: gdeltLayerActive,
+      priority: "secondary",
     },
     {
-      label: humanitarianLayerActive ? `${feeds.humanitarian.count} relief reports` : "reliefweb layer standby",
+      label: `${feeds.humanitarian.count} relief`,
       active: humanitarianLayerActive,
+      priority: "secondary",
     },
     {
-      label: imageryLayerActive ? `${feeds.imagery.count} imagery footprints` : "imagery layer standby",
+      label: `${feeds.imagery.count} imagery`,
       active: imageryLayerActive,
+      priority: "secondary",
     },
     {
-      label: Object.values(feeds).some((feed) => feed.online) ? "feed synced" : "feed acquiring",
-      active: Object.values(feeds).some((feed) => feed.online),
+      label: feedOnline ? "feed synced" : "feed acquiring",
+      active: feedOnline,
+      priority: "detail",
     },
-    { label: `camera altitude ${formatAltitude(cameraHeightMeters)}`, active: true },
-    { label: `selected ${selectedEntityName ?? "none"}`, active: Boolean(selectedEntityName) },
+    {
+      label: `camera altitude ${formatAltitude(cameraHeightMeters)}`,
+      active: true,
+      priority: "detail",
+    },
+    {
+      label: `selected ${selectedEntityName}`,
+      active: Boolean(selectedEntityName),
+      priority: "detail",
+    },
   ];
+  const visibleTickerItems = tickerItems.filter((item) => item.active);
+  const primaryTickerItems = visibleTickerItems.filter((item) => item.priority === "primary");
+  const secondaryTickerItems = visibleTickerItems.filter((item) => item.priority === "secondary");
+  const detailTickerItems = visibleTickerItems.filter((item) => item.priority === "detail");
 
   return (
     <footer className="absolute inset-x-0 bottom-0 z-30 px-3 pb-3 text-slate-300 sm:px-5">
-      <div className="mx-auto flex min-h-11 max-w-[1520px] items-center gap-3 overflow-hidden rounded-2xl bg-slate-950/68 px-3 shadow-[0_18px_70px_rgba(0,0,0,0.3),0_0_34px_rgba(14,165,233,0.07)] ring-1 ring-white/[0.1] backdrop-blur-2xl">
-        <div className="shrink-0">
-          <p className="text-[0.58rem] font-medium uppercase tracking-[0.18em] text-slate-500">Telemetry</p>
-          <p className="font-mono text-[0.62rem] uppercase tracking-[0.11em] text-slate-300">
-            {followEnabled && selectedEntityName ? "Tracking" : "Wide scan"}
-          </p>
+      <div className="mx-auto flex h-10 max-w-[1120px] items-center gap-2 overflow-hidden rounded-2xl bg-slate-950/64 px-2.5 shadow-[0_14px_48px_rgba(0,0,0,0.28),0_0_24px_rgba(14,165,233,0.045)] ring-1 ring-white/[0.085] backdrop-blur-2xl">
+        <div className="flex min-w-0 shrink-0 items-center gap-2 rounded-xl bg-white/[0.035] px-2.5 py-1 ring-1 ring-white/[0.055]">
+          <StatusDot active={feedOnline} tone="emerald" glow />
+          <span className="hidden font-mono text-[0.58rem] uppercase tracking-[0.1em] text-slate-400 sm:inline">
+            {followEnabled && selectedEntityName ? "Tracking" : "Scan"}
+          </span>
         </div>
-        <div className="h-4 w-px shrink-0 bg-white/10" aria-hidden="true" />
-        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {visibleTickerItems.map((item) => (
-            <TelemetryPill key={item.label} label={item.label} active={item.active} />
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {primaryTickerItems.map((item) => (
+            <TelemetryPill
+              key={item.label}
+              label={item.label}
+              active={item.active}
+            />
+          ))}
+          {secondaryTickerItems.map((item) => (
+            <span className="hidden md:inline-flex" key={item.label}>
+              <TelemetryPill label={item.label} active={item.active} />
+            </span>
+          ))}
+          {detailTickerItems.map((item) => (
+            <span className="hidden xl:inline-flex" key={item.label}>
+              <TelemetryPill label={item.label} active={item.active} />
+            </span>
           ))}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="hidden items-center gap-1.5 sm:flex">
           <StatusDot active={feeds.aircraft.online} tone="cyan" />
           <StatusDot active={feeds.satellites.online} tone="emerald" />
-          <StatusDot active={feeds.earthquakes.online || feeds.gdelt.online || feeds.humanitarian.online || feeds.imagery.online} tone="violet" />
+          <StatusDot
+            active={
+              feeds.earthquakes.online ||
+              feeds.gdelt.online ||
+              feeds.humanitarian.online ||
+              feeds.imagery.online
+            }
+            tone="violet"
+          />
         </div>
       </div>
     </footer>

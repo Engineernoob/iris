@@ -99,6 +99,14 @@ function entityKeyForSelection(entity: NonNullable<SelectedEntity>): string {
     return createSatelliteEntityId(entity.id);
   }
 
+  if (entity.kind === "earthquake") {
+    return `earthquake:${entity.id}`;
+  }
+
+  if (entity.kind === "humanitarian") {
+    return `humanitarian:${entity.id}`;
+  }
+
   return entity.id;
 }
 

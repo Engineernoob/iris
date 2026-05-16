@@ -54,10 +54,10 @@ function HudOverlay() {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 text-slate-100" aria-label="Globe telemetry overlay">
-      <div className="absolute left-5 top-20 h-10 w-10 border-l border-t border-white/12 sm:left-6" aria-hidden="true" />
-      <div className="absolute right-5 top-20 h-10 w-10 border-r border-t border-white/12 sm:right-6" aria-hidden="true" />
-      <div className="absolute bottom-16 left-5 h-10 w-10 border-b border-l border-white/12 sm:left-6" aria-hidden="true" />
-      <div className="absolute bottom-16 right-5 h-10 w-10 border-b border-r border-white/12 sm:right-6" aria-hidden="true" />
+      <div className="absolute left-5 top-20 h-10 w-10 border-l border-t border-white/10 sm:left-6" aria-hidden="true" />
+      <div className="absolute right-5 top-20 h-10 w-10 border-r border-t border-white/10 sm:right-6" aria-hidden="true" />
+      <div className="absolute bottom-16 left-5 h-10 w-10 border-b border-l border-white/10 sm:left-6" aria-hidden="true" />
+      <div className="absolute bottom-16 right-5 h-10 w-10 border-b border-r border-white/10 sm:right-6" aria-hidden="true" />
       <div
         className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 opacity-60"
         aria-hidden="true"
@@ -69,29 +69,29 @@ function HudOverlay() {
         <div className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-1 ring-cyan-100/35" />
       </div>
       <div
-        className="absolute bottom-16 left-1/2 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap justify-center gap-2"
+        className="absolute bottom-[4.35rem] left-1/2 hidden max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap justify-center gap-1.5 md:flex"
         role="status"
         aria-live="polite"
       >
-        <div className="rounded-full bg-slate-950/48 px-3 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.11em] text-slate-200/90 shadow-[0_0_28px_rgba(14,165,233,0.05)] ring-1 ring-white/[0.08] backdrop-blur-xl">
+        <div className="rounded-xl bg-slate-950/46 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.1em] text-slate-200/85 shadow-[0_0_24px_rgba(14,165,233,0.045)] ring-1 ring-white/[0.075] backdrop-blur-xl">
           {coordinateText}
         </div>
-        <div className="rounded-full bg-slate-950/48 px-3 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.11em] text-slate-200/90 shadow-[0_0_28px_rgba(14,165,233,0.05)] ring-1 ring-white/[0.08] backdrop-blur-xl">
+        <div className="rounded-xl bg-slate-950/46 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.1em] text-slate-200/85 shadow-[0_0_24px_rgba(14,165,233,0.045)] ring-1 ring-white/[0.075] backdrop-blur-xl">
           Zoom {globe.zoomLevel.toFixed(1)}
         </div>
-        <div className="rounded-full bg-slate-950/48 px-3 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.11em] text-slate-200/90 shadow-[0_0_28px_rgba(14,165,233,0.05)] ring-1 ring-white/[0.08] backdrop-blur-xl">
+        <div className="rounded-xl bg-slate-950/46 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.1em] text-slate-200/85 shadow-[0_0_24px_rgba(14,165,233,0.045)] ring-1 ring-white/[0.075] backdrop-blur-xl">
           Alt {formatAltitude(globe.cameraHeightMeters)}
         </div>
       </div>
-      <div className="absolute right-5 top-20 rounded-full bg-slate-950/48 px-3 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.11em] text-slate-200/90 ring-1 ring-white/[0.08] backdrop-blur-xl sm:right-6">
+      <div className="absolute right-5 top-20 rounded-xl bg-slate-950/46 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.1em] text-slate-200/85 ring-1 ring-white/[0.075] backdrop-blur-xl sm:right-6">
         {utcTime}
       </div>
       {legendItems.length > 0 && (
-        <div className="absolute bottom-32 left-5 hidden w-44 rounded-2xl bg-slate-950/48 p-2 font-mono text-[0.6rem] uppercase tracking-[0.1em] text-slate-300/85 ring-1 ring-white/[0.08] backdrop-blur-xl lg:block">
+        <div className="absolute bottom-[6.7rem] left-5 hidden max-w-[calc(100vw-2rem)] flex-wrap gap-1.5 rounded-2xl bg-slate-950/42 p-1.5 font-mono text-[0.58rem] uppercase tracking-[0.09em] text-slate-300/82 ring-1 ring-white/[0.075] backdrop-blur-xl lg:flex">
           {legendItems.map((item) => (
-            <div key={item.shortLabel} className="grid h-7 grid-cols-[1.5rem_1fr_auto] items-center gap-2">
-              <span className={`size-2.5 rounded-[3px] ${item.tone} shadow-[0_0_14px_currentColor]`} aria-hidden="true" />
-              <span className="truncate">{item.label}</span>
+            <div key={item.shortLabel} className="grid h-7 grid-cols-[auto_2.2rem_auto] items-center gap-1.5 rounded-xl px-2">
+              <span className={`size-2 rounded-[2px] ${item.tone} shadow-[0_0_12px_currentColor]`} aria-hidden="true" />
+              <span className="text-slate-400">{item.shortLabel}</span>
               <span className="tabular-nums text-slate-500">{String(item.count).padStart(2, "0")}</span>
             </div>
           ))}

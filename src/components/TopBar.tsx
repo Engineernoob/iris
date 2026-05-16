@@ -27,6 +27,8 @@ function TopBar() {
   );
   const signalCount = feeds.earthquakes.count + feeds.gdelt.count + feeds.humanitarian.count + feeds.imagery.count;
   const signalOnline = feeds.earthquakes.online || feeds.gdelt.online || feeds.humanitarian.online || feeds.imagery.online;
+  const trackingLabel = followEnabled && selectedEntityName ? selectedEntityName : "Free scan";
+
   useEffect(() => {
     const updateUtcTime = () => setUtcTime(formatUtcClock(new Date()));
 
@@ -38,31 +40,31 @@ function TopBar() {
 
   return (
     <header className="absolute inset-x-0 top-0 z-30 px-3 pt-3 text-slate-100 sm:px-5">
-      <div className="mx-auto grid min-h-14 max-w-[1520px] grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl bg-slate-950/68 px-3 shadow-[0_18px_80px_rgba(0,0,0,0.34),0_0_42px_rgba(14,165,233,0.08)] ring-1 ring-white/[0.11] backdrop-blur-2xl sm:px-4">
+      <div className="mx-auto grid min-h-14 max-w-[1500px] grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[1.35rem] bg-slate-950/66 px-3 shadow-[0_18px_70px_rgba(0,0,0,0.34),0_0_38px_rgba(14,165,233,0.07)] ring-1 ring-white/[0.1] backdrop-blur-2xl sm:px-3.5">
         <div className="flex min-w-0 items-center gap-3">
           <div
-            className="grid size-9 place-items-center rounded-xl bg-cyan-300/[0.1] text-[0.72rem] font-semibold tracking-[0.18em] text-cyan-100 shadow-[0_0_28px_rgba(34,211,238,0.08)] ring-1 ring-cyan-200/20"
+            className="grid size-9 place-items-center rounded-2xl bg-cyan-300/[0.1] text-[0.72rem] font-semibold tracking-[0.18em] text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.08)] ring-1 ring-cyan-200/18"
             aria-hidden="true"
           >
             I
           </div>
           <div className="min-w-0">
             <div className="flex min-w-0 items-baseline gap-2">
-              <h1 className="truncate text-[0.92rem] font-semibold tracking-[0.28em] text-white">IRIS</h1>
-              <span className="hidden text-[0.6rem] font-medium uppercase tracking-[0.18em] text-cyan-100/60 sm:inline">
+              <h1 className="truncate text-[0.9rem] font-semibold tracking-[0.26em] text-white">IRIS</h1>
+              <span className="hidden text-[0.58rem] font-medium uppercase tracking-[0.16em] text-cyan-100/55 sm:inline">
                 Spatial Ops
               </span>
             </div>
-            <p className="mt-0.5 hidden truncate font-mono text-[0.6rem] uppercase tracking-[0.12em] text-slate-500 md:block">
-              Mode {sensorMode} / {followEnabled && selectedEntityName ? `tracking ${selectedEntityName}` : "free scan"}
+            <p className="mt-0.5 hidden max-w-[28rem] truncate font-mono text-[0.58rem] uppercase tracking-[0.11em] text-slate-500 md:block">
+              {sensorMode} / {followEnabled ? "Tracking" : "Wide scan"} / {trackingLabel}
             </p>
           </div>
         </div>
-        <label className="mx-auto hidden h-9 w-full max-w-md items-center rounded-xl bg-white/[0.05] px-3 ring-1 ring-white/[0.08] transition-colors focus-within:bg-white/[0.075] focus-within:ring-cyan-200/35 md:flex">
+        <label className="mx-auto hidden h-10 w-full max-w-[32rem] items-center rounded-2xl bg-white/[0.045] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] ring-1 ring-white/[0.075] transition-[background-color,box-shadow] focus-within:bg-white/[0.07] focus-within:ring-cyan-200/32 md:flex">
           <span className="sr-only">Search coordinates, assets, or signals</span>
-          <span className="mr-2 size-1.5 rounded-full bg-cyan-200/70" aria-hidden="true" />
+          <span className="mr-2.5 size-1.5 rounded-full bg-cyan-200/70 shadow-[0_0_12px_rgba(103,232,249,0.28)]" aria-hidden="true" />
           <input
-            className="w-full bg-transparent text-xs text-slate-100 outline-none placeholder:text-slate-500"
+            className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500"
             placeholder="Search coordinates, asset, signal"
             type="search"
           />
@@ -75,20 +77,22 @@ function TopBar() {
           ].map(([label, online, tone, count]) => (
             <div
               key={String(label)}
-              className="flex h-9 items-center gap-2 rounded-xl bg-white/[0.045] px-2.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-slate-400 ring-1 ring-white/[0.07]"
+              className="flex h-10 min-w-20 items-center justify-between gap-2 rounded-2xl bg-white/[0.042] px-3 font-mono text-[0.6rem] uppercase tracking-[0.11em] text-slate-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] ring-1 ring-white/[0.065]"
             >
-              <StatusDot active={Boolean(online)} tone={tone as "cyan" | "emerald" | "violet"} />
-              <span className={online ? "text-slate-200" : "text-slate-500"}>{label}</span>
+              <span className="flex items-center gap-2">
+                <StatusDot active={Boolean(online)} tone={tone as "cyan" | "emerald" | "violet"} />
+                <span className={online ? "text-slate-200" : "text-slate-500"}>{label}</span>
+              </span>
               <span className="tabular-nums text-slate-500">{String(count).padStart(2, "0")}</span>
             </div>
           ))}
-          <div className="flex h-9 items-center gap-2 rounded-xl bg-emerald-300/[0.08] px-2.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-emerald-100/80 ring-1 ring-emerald-200/15" role="status" aria-live="polite">
+          <div className="flex h-10 items-center gap-2 rounded-2xl bg-emerald-300/[0.075] px-3 font-mono text-[0.6rem] uppercase tracking-[0.11em] text-emerald-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] ring-1 ring-emerald-200/14" role="status" aria-live="polite">
             <StatusDot active tone="emerald" />
             <span className="tabular-nums">UTC {utcTime}</span>
             <span className="text-slate-500">/ {latencyMs || "--"}MS</span>
           </div>
         </div>
-        <div className="flex h-9 items-center gap-2 rounded-xl bg-white/[0.045] px-2.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-slate-400 ring-1 ring-white/[0.07] lg:hidden">
+        <div className="flex h-10 items-center gap-2 rounded-2xl bg-white/[0.045] px-3 font-mono text-[0.6rem] uppercase tracking-[0.11em] text-slate-400 ring-1 ring-white/[0.07] lg:hidden">
           <StatusDot active={feeds.aircraft.online || feeds.satellites.online || signalOnline} tone="emerald" />
           <span className="tabular-nums">{utcTime}</span>
         </div>
